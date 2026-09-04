@@ -1,0 +1,12 @@
+# Environment variables / secrets
+.env
+
+# Keys
+*.pem
+*.key
+
+# HTB VPN files
+*.ovpn
+
+# Credentials
+credentials
