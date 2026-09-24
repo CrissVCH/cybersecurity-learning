@@ -795,6 +795,377 @@ lsof
 
 are especially useful when trying to understand a Linux system during a security assessment.
 
+# Section 9 - Editing Files
+
+Linux files can be edited directly from the terminal using text editors such as Nano and Vim.
+
+---
+
+## Nano
+
+Nano is a simple terminal text editor.
+
+Open or create a file:
+
+```bash
+nano notes.txt
+```
+
+Useful shortcuts:
+
+```text
+Ctrl + W  Search
+Ctrl + O  Save
+Enter     Confirm filename
+Ctrl + X  Exit
+```
+
+In Nano, `^` represents the `Ctrl` key.
+
+View the contents of a file:
+
+```bash
+cat notes.txt
+```
+
+---
+
+## Important Linux Files
+
+### /etc/passwd
+
+Contains information about system users, such as:
+
+- Username
+- UID
+- GID
+- Home directory
+
+Password hashes are normally not stored here.
+
+### /etc/shadow
+
+Contains password hashes and normally has more restrictive permissions.
+
+Misconfigured permissions on sensitive files can expose information and may contribute to privilege escalation.
+
+---
+
+## Vim / Neovim
+
+Vim is a modal text editor.
+
+Different keys perform different actions depending on the current mode.
+
+### Main Modes
+
+- **Normal Mode** - Execute commands.
+- **Insert Mode** - Write text.
+- **Visual Mode** - Select text.
+- **Command Mode** - Execute commands beginning with `:`.
+- **Replace Mode** - Replace existing text.
+
+Enter Insert Mode:
+
+```text
+i
+```
+
+Return to Normal Mode:
+
+```text
+Esc
+```
+
+---
+
+## Vim Movement
+
+```text
+h   Left
+j   Down
+k   Up
+l   Right
+
+0   Beginning of line
+gg  Beginning of file
+G   End of file
+```
+
+Jump to a specific line:
+
+```text
+10G
+```
+
+Example: `10G` jumps to line 10.
+
+---
+
+## Insert and Append
+
+Insert text:
+
+```text
+i
+```
+
+Append text at the end of a line:
+
+```text
+A
+```
+
+Return to Normal Mode:
+
+```text
+Esc
+```
+
+---
+
+## Delete
+
+Delete current character:
+
+```text
+x
+```
+
+Delete one word:
+
+```text
+dw
+```
+
+Delete to the end of the line:
+
+```text
+d$
+```
+
+Delete one complete line:
+
+```text
+dd
+```
+
+Delete multiple lines:
+
+```text
+2dd
+```
+
+---
+
+## Operators, Counts and Motions
+
+Many Vim commands follow:
+
+```text
+operator + [count] + motion
+```
+
+Examples:
+
+```text
+dw    Delete one word
+2w    Move two words forward
+3e    Move to the end of the third word
+d2w   Delete two words
+```
+
+This means Vim commands can be combined instead of memorized individually.
+
+---
+
+## Undo and Redo
+
+Undo:
+
+```text
+u
+```
+
+Redo:
+
+```text
+Ctrl + R
+```
+
+---
+
+## Put / Paste
+
+Paste after the cursor:
+
+```text
+p
+```
+
+Paste before the cursor:
+
+```text
+P
+```
+
+For example:
+
+```text
+dd
+p
+```
+
+can be used to remove a line and place it somewhere else.
+
+---
+
+## Replace
+
+Replace the current character:
+
+```text
+r
+```
+
+Then type the replacement character.
+
+---
+
+## Change Operator
+
+The `c` operator works similarly to delete, but enters Insert Mode afterward.
+
+Change to the end of a word:
+
+```text
+ce
+```
+
+Change to the end of a line:
+
+```text
+c$
+```
+
+General pattern:
+
+```text
+c + [count] + motion
+```
+
+---
+
+## Search
+
+Search forward:
+
+```vim
+/text
+```
+
+Next result:
+
+```text
+n
+```
+
+Previous result:
+
+```text
+N
+```
+
+Search backward:
+
+```vim
+?text
+```
+
+---
+
+## Matching Brackets
+
+```text
+%
+```
+
+Jumps between matching:
+
+```text
+( )
+[ ]
+{ }
+```
+
+This can be useful when reading code or scripts.
+
+---
+
+## Text Substitution
+
+Replace one occurrence on the current line:
+
+```vim
+:s/old/new/
+```
+
+Replace all occurrences on the current line:
+
+```vim
+:s/old/new/g
+```
+
+---
+
+## Save and Exit Vim
+
+Save and quit:
+
+```vim
+:wq
+```
+
+Quit without saving:
+
+```vim
+:q!
+```
+
+During VimTutor in the HTB Pwnbox, `:wq` returned:
+
+```text
+E382: Cannot write, 'buftype' option is set
+```
+
+because VimTutor was running in a special buffer rather than a normal writable file.
+
+---
+
+## VimTutor
+
+I used VimTutor to practice the commands instead of only reading about them.
+
+I practiced:
+
+- Movement
+- Normal Mode
+- Insert Mode
+- Append
+- Delete
+- Operators and motions
+- Counts
+- Undo / redo
+- Put
+- Replace
+- Change
+- Search
+- Navigation
+- Matching brackets
+- Basic substitution
+
+The current goal is not to master Vim completely, but to become comfortable enough to use it during Linux administration and cybersecurity labs.
+
 ---
 
 # Progress
@@ -809,4 +1180,4 @@ Completed notes:
 - Section 6 - System Information
 - Section 7 - Navigation
 - Section 8 - Working with Files and Directories
-
+- Section 9 - Editing Files
