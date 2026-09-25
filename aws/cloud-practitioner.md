@@ -308,3 +308,427 @@ SNS and SQS can also be used together in architectures that require both message
 - Loosely coupled architectures reduce dependencies between components.
 - SNS distributes messages and notifications.
 - SQS stores messages until they are processed.
+
+# Module 4 - AWS Global Infrastructure
+
+## Overview
+
+This module focused on how AWS Global Infrastructure is organized and how businesses can use it to improve:
+
+- High availability
+- Fault tolerance
+- Agility
+- Elasticity
+- Global performance
+
+The main topics were:
+
+- AWS Regions
+- Availability Zones
+- Edge locations
+- Choosing a Region
+- Infrastructure as Code
+- AWS CloudFormation
+- Ways to interact with AWS resources
+
+---
+
+## Choosing an AWS Region
+
+Choosing the correct AWS Region depends on several factors.
+
+### Compliance
+
+Different countries and regions have different laws and regulations.
+
+Organizations may need to choose specific AWS Regions to comply with requirements such as:
+
+- Data protection laws
+- Data residency requirements
+- Industry regulations
+
+Example:
+
+The GDPR applies to personal data belonging to individuals in the European Union.
+
+---
+
+### Proximity
+
+Regions closer to users can reduce latency.
+
+Lower latency means:
+
+- Faster response times
+- Better application performance
+- Better user experience
+
+Choosing a Region far away from users can increase delay.
+
+---
+
+### Feature Availability
+
+Not every AWS service or feature is available in every Region.
+
+Before selecting a Region, it is important to verify whether the required AWS services are supported there.
+
+Example:
+
+AWS GovCloud Regions are designed for specific US government security and compliance requirements.
+
+---
+
+### Pricing
+
+AWS pricing can vary between Regions.
+
+Factors that may affect cost include:
+
+- Regional operating costs
+- Taxes
+- Regulations
+- Data sovereignty requirements
+
+---
+
+# AWS Global Infrastructure
+
+## Regions
+
+AWS Regions are geographical areas around the world.
+
+Each Region:
+
+- Contains multiple Availability Zones
+- Provides redundant infrastructure
+- Is separated from other Regions
+
+AWS Regions help businesses deploy applications closer to users and improve resilience.
+
+---
+
+## Availability Zones
+
+Availability Zones (AZs) are isolated locations inside an AWS Region.
+
+Each AZ has its own:
+
+- Power
+- Networking
+- Connectivity
+
+Each Availability Zone consists of one or more data centers.
+
+AWS Regions contain multiple Availability Zones.
+
+Using multiple AZs can improve:
+
+- High availability
+- Fault tolerance
+- Application reliability
+
+---
+
+## Multi-Region and Multi-AZ Architectures
+
+AWS resources can be distributed across:
+
+- Multiple Availability Zones
+- Multiple Regions
+- Or both
+
+This creates redundancy.
+
+If one location becomes unavailable, another location can continue serving users.
+
+---
+
+# High Availability, Agility and Elasticity
+
+## High Availability
+
+High availability means a system can continue operating even when individual components fail.
+
+Example:
+
+Deploying an application across multiple Availability Zones can reduce downtime if one AZ fails.
+
+---
+
+## Agility
+
+Agility is the ability to quickly adapt to changing requirements.
+
+AWS makes it possible to:
+
+- Deploy resources quickly
+- Modify infrastructure
+- Introduce new services faster
+
+---
+
+## Elasticity
+
+Elasticity is the ability to scale resources up or down based on demand.
+
+Example:
+
+```text
+More users
+    ↓
+More AWS resources
+
+Less demand
+    ↓
+Reduce resources
+```
+
+This allows infrastructure to adapt to workload changes.
+
+---
+
+# Edge Locations
+
+AWS also operates edge locations around the world.
+
+Edge locations are smaller AWS facilities designed to bring content and services closer to users.
+
+They can cache content such as:
+
+- Images
+- Videos
+- Web content
+- Application resources
+
+The goal is to reduce latency and improve transfer speed.
+
+---
+
+## Amazon CloudFront
+
+Amazon CloudFront is an AWS Content Delivery Network (CDN).
+
+CloudFront uses edge locations to deliver cached content closer to users.
+
+Conceptually:
+
+```text
+Origin Server
+     ↓
+Edge Location
+     ↓
+User
+```
+
+Instead of retrieving content from a distant Region every time, users can receive cached content from a nearby edge location.
+
+---
+
+# Region vs Availability Zone vs Edge Location
+
+## Region
+
+A geographical area containing multiple Availability Zones.
+
+## Availability Zone
+
+An isolated location inside a Region containing one or more data centers.
+
+## Edge Location
+
+A location closer to end users used for services such as content delivery and caching.
+
+Quick comparison:
+
+```text
+Region
+ ├── Availability Zone
+ ├── Availability Zone
+ └── Availability Zone
+
+Edge Locations
+ └── Distributed closer to users globally
+```
+
+---
+
+# Infrastructure as Code (IaC)
+
+Infrastructure as Code means defining and managing infrastructure using code or configuration files instead of manually creating resources.
+
+Benefits include:
+
+- Automation
+- Consistency
+- Repeatability
+- Faster deployment
+- Easier scaling
+
+---
+
+# AWS CloudFormation
+
+AWS CloudFormation is an Infrastructure as Code service.
+
+CloudFormation allows infrastructure to be defined using templates.
+
+A template describes the AWS resources that should be created.
+
+Example resources include:
+
+- EC2 instances
+- Networking resources
+- Storage resources
+- Other AWS services
+
+CloudFormation then provisions and configures those resources automatically.
+
+Conceptually:
+
+```text
+CloudFormation Template
+        ↓
+AWS CloudFormation
+        ↓
+AWS Resources
+```
+
+This helps create infrastructure in a consistent and repeatable way.
+
+---
+
+# Ways to Interact with AWS
+
+AWS resources are ultimately managed through AWS APIs.
+
+AWS provides several ways to interact with these APIs.
+
+---
+
+## AWS Management Console
+
+The AWS Management Console is a graphical web interface.
+
+It is useful for:
+
+- Beginners
+- Manual configuration
+- Billing dashboards
+- Cost visualization
+- Services with graphical interfaces
+
+---
+
+## AWS CLI
+
+The AWS Command Line Interface allows AWS services to be managed from the terminal.
+
+It can be useful for:
+
+- Automation
+- Scripts
+- Repetitive tasks
+
+Example use case:
+
+Automating backups.
+
+---
+
+## AWS SDKs
+
+AWS SDKs allow applications to interact with AWS services using programming languages.
+
+They can be used to call AWS APIs directly from applications.
+
+Example:
+
+An application could use an AWS SDK to store user data in Amazon S3.
+
+---
+
+## Infrastructure as Code
+
+Tools such as CloudFormation automate infrastructure creation and management.
+
+Useful for:
+
+- DevOps
+- CI/CD pipelines
+- Repeatable deployments
+- Multi-Region environments
+- Scaling infrastructure consistently
+
+---
+
+# Quick Comparison
+
+| Method | Best Use |
+|---|---|
+| AWS Management Console | Manual management and beginners |
+| AWS CLI | Command-line automation and scripting |
+| AWS SDK | Integrating AWS services into applications |
+| CloudFormation | Automated and repeatable infrastructure deployment |
+
+---
+
+# Important Concepts to Remember
+
+### Choosing a Region
+
+Consider:
+
+```text
+Compliance
+Proximity
+Feature availability
+Pricing
+```
+
+### AWS Global Infrastructure
+
+```text
+Region
+   ↓
+Availability Zones
+   ↓
+Data Centers
+```
+
+Edge locations exist separately to bring services and content closer to users.
+
+### Infrastructure Benefits
+
+```text
+High Availability
+Agility
+Elasticity
+Fault Tolerance
+```
+
+### Infrastructure as Code
+
+```text
+Infrastructure defined as code
+        ↓
+Automated deployment
+        ↓
+Consistent environments
+```
+
+---
+
+# Module 4 Summary
+
+In this module, I learned:
+
+- How AWS Regions are selected
+- The difference between Regions, Availability Zones, and edge locations
+- How multiple Regions and AZs improve availability and fault tolerance
+- The difference between high availability, agility, and elasticity
+- How edge locations reduce latency
+- How CloudFront uses edge locations for content delivery
+- What Infrastructure as Code means
+- How AWS CloudFormation automates infrastructure deployment
+- The difference between the AWS Console, CLI, SDKs, and CloudFormation
