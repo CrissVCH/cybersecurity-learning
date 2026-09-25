@@ -1166,6 +1166,309 @@ I practiced:
 
 The current goal is not to master Vim completely, but to become comfortable enough to use it during Linux administration and cybersecurity labs.
 
+# Section 10 - Find Files and Directories
+
+Finding files and directories is important in Linux administration and cybersecurity.
+
+During a security assessment, it may be necessary to locate:
+
+- Configuration files
+- User-created scripts
+- Sensitive files
+- Installed tools
+- Files owned by specific users
+- Recently modified files
+
+Linux provides several tools for this purpose.
+
+---
+
+## which
+
+The `which` command shows the path of the executable that would run for a given command.
+
+Syntax:
+
+```bash
+which <command>
+```
+
+Example:
+
+```bash
+which python
+```
+
+Example output:
+
+```text
+/usr/bin/python
+```
+
+This is useful for checking whether tools such as:
+
+- Python
+- curl
+- wget
+- netcat
+- gcc
+
+are installed and available.
+
+If the program cannot be found, `which` normally returns no result.
+
+---
+
+## find
+
+The `find` command searches for files and directories and supports many filters.
+
+Basic syntax:
+
+```bash
+find <location> <options>
+```
+
+Example:
+
+```bash
+find / -type f -name "*.conf"
+```
+
+This searches from the root directory `/` for files ending in `.conf`.
+
+---
+
+## Useful find Options
+
+### Search only for files
+
+```bash
+-type f
+```
+
+### Search by name
+
+```bash
+-name "*.conf"
+```
+
+The `*` wildcard means:
+
+```text
+any characters
+```
+
+So:
+
+```text
+*.conf
+```
+
+means any file ending in `.conf`.
+
+### Search by owner
+
+```bash
+-user root
+```
+
+Searches for files owned by the `root` user.
+
+### Search by size
+
+```bash
+-size +20k
+```
+
+Searches for files larger than 20 KiB.
+
+### Search by modification date
+
+```bash
+-newermt 2020-03-03
+```
+
+Shows files modified after the specified date.
+
+---
+
+## Execute Commands on Results
+
+The `-exec` option allows another command to run against each result.
+
+Example:
+
+```bash
+-exec ls -al {} \;
+```
+
+Important parts:
+
+```text
+{}   Placeholder for each file found
+\;   Marks the end of the command executed by find
+```
+
+Example:
+
+```bash
+find / -type f -name "*.conf" -exec ls -al {} \;
+```
+
+This searches for `.conf` files and displays detailed information about each one.
+
+---
+
+## Redirect Errors
+
+A large search across the Linux filesystem may produce permission errors.
+
+These can be hidden using:
+
+```bash
+2>/dev/null
+```
+
+Example:
+
+```bash
+find / -type f -name "*.conf" 2>/dev/null
+```
+
+`2>` redirects standard error (`STDERR`).
+
+`/dev/null` discards the redirected output.
+
+This means:
+
+```text
+2>/dev/null
+```
+
+can be used to hide error messages from the terminal.
+
+---
+
+## Complete find Example
+
+```bash
+find / -type f -name "*.conf" -user root -size +20k -newermt 2020-03-03 -exec ls -al {} \; 2>/dev/null
+```
+
+This command searches:
+
+- From `/`
+- Only files
+- Files ending in `.conf`
+- Owned by root
+- Larger than 20 KiB
+- Modified after March 3, 2020
+
+Then it runs:
+
+```bash
+ls -al
+```
+
+against each result and hides permission errors.
+
+---
+
+## locate
+
+The `locate` command searches using a local database instead of scanning the filesystem directly.
+
+Because of this, it can be much faster than `find`.
+
+Update the locate database:
+
+```bash
+sudo updatedb
+```
+
+Search for `.conf` files:
+
+```bash
+locate "*.conf"
+```
+
+---
+
+## find vs locate
+
+### find
+
+Advantages:
+
+- Searches the filesystem directly
+- Supports many filters
+- Can search by:
+  - Name
+  - Type
+  - Owner
+  - Size
+  - Date
+- Can execute commands against results
+
+Disadvantage:
+
+- Can be slower
+
+### locate
+
+Advantages:
+
+- Very fast
+- Simple to use
+
+Disadvantages:
+
+- Uses a database
+- Database may need to be updated
+- Has fewer filtering capabilities
+
+---
+
+## Cybersecurity Relevance
+
+Searching the filesystem is useful for:
+
+- Enumeration
+- Finding configuration files
+- Finding scripts
+- Discovering installed tools
+- Looking for sensitive files
+- Privilege escalation research
+- Locating files owned by privileged users
+
+Important commands from this section:
+
+```bash
+which <command>
+find <location> <options>
+locate <pattern>
+sudo updatedb
+```
+
+Useful `find` filters:
+
+```bash
+-type f
+-name
+-user
+-size
+-newermt
+-exec
+```
+
+Useful error redirection:
+
+```bash
+2>/dev/null
+```
+
+
 ---
 
 # Progress
@@ -1181,3 +1484,4 @@ Completed notes:
 - Section 7 - Navigation
 - Section 8 - Working with Files and Directories
 - Section 9 - Editing Files
+- Section 10 - Find Files and Directories
