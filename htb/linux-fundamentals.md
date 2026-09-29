@@ -1468,6 +1468,524 @@ Useful error redirection:
 2>/dev/null
 ```
 
+# Section 11 - File Descriptors and Redirections
+
+Linux uses file descriptors to manage input, normal output, and errors.
+
+The three standard file descriptors are:
+
+```text
+0 = STDIN
+1 = STDOUT
+2 = STDERR
+```
+
+---
+
+## STDIN, STDOUT and STDERR
+
+### STDIN - File Descriptor 0
+
+Standard input received by a program.
+
+Input can come from:
+
+- Keyboard
+- File
+- Another command
+
+### STDOUT - File Descriptor 1
+
+Normal output produced by a command.
+
+### STDERR - File Descriptor 2
+
+Error output produced by a command.
+
+STDOUT and STDERR are separate streams and can be redirected independently.
+
+---
+
+## Redirecting STDOUT
+
+Redirect normal output to a file:
+
+```bash
+command > file.txt
+```
+
+This is equivalent to:
+
+```bash
+command 1> file.txt
+```
+
+Important:
+
+```text
+>  overwrites the file
+>> appends to the file
+```
+
+Example:
+
+```bash
+echo hello > notes.txt
+echo world >> notes.txt
+```
+
+---
+
+## Redirecting STDERR
+
+Redirect errors:
+
+```bash
+command 2> errors.txt
+```
+
+Example:
+
+```bash
+find / -name "*.log" 2> errors.txt
+```
+
+---
+
+## /dev/null
+
+`/dev/null` discards anything written to it.
+
+It is useful for hiding errors:
+
+```bash
+2>/dev/null
+```
+
+Example:
+
+```bash
+find / -type f -name "*.log" 2>/dev/null
+```
+
+The command can still produce permission errors, but they are not displayed.
+
+---
+
+## Redirect STDOUT and STDERR Separately
+
+```bash
+command 1> stdout.txt 2> stderr.txt
+```
+
+This sends:
+
+```text
+normal output → stdout.txt
+errors        → stderr.txt
+```
+
+---
+
+## Redirecting STDIN
+
+Use a file as input:
+
+```bash
+command < file.txt
+```
+
+Example:
+
+```bash
+cat < file.txt
+```
+
+---
+
+## Here Documents
+
+A here document provides multi-line input to a command.
+
+Example:
+
+```bash
+cat << EOF
+Hello
+Linux
+HTB
+EOF
+```
+
+The shell continues accepting input until the closing delimiter is reached.
+
+It can also be redirected to a file:
+
+```bash
+cat << EOF > stream.txt
+Hello
+Linux
+HTB
+EOF
+```
+
+Quick reference:
+
+```text
+<       Input from a file
+<< EOF  Multi-line input
+
+>       Write output and overwrite
+>>      Append output
+```
+
+---
+
+## Pipes
+
+A pipe sends the STDOUT of one command into the STDIN of another.
+
+```bash
+command1 | command2
+```
+
+Example:
+
+```bash
+find /etc -name "*.conf" 2>/dev/null | grep systemd
+```
+
+Conceptually:
+
+```text
+command
+   ↓
+ STDOUT
+   ↓
+   |
+   ↓
+ STDIN
+   ↓
+next command
+```
+
+This is one of the most important Linux concepts because small tools can be chained together.
+
+---
+
+## grep
+
+`grep` filters text using a pattern.
+
+```bash
+command | grep pattern
+```
+
+Case-insensitive search:
+
+```bash
+grep -i "linux"
+```
+
+This can match:
+
+```text
+linux
+Linux
+LINUX
+```
+
+---
+
+## Basic Regex - ^
+
+The regex symbol:
+
+```text
+^
+```
+
+means:
+
+```text
+beginning of the line
+```
+
+Example:
+
+```bash
+grep '^ii'
+```
+
+keeps only lines beginning with `ii`.
+
+---
+
+## wc -l
+
+Count lines:
+
+```bash
+wc -l
+```
+
+Example:
+
+```bash
+command | wc -l
+```
+
+This is useful when each result is displayed on one line.
+
+---
+
+## Building Pipelines
+
+Commands can be chained together:
+
+```bash
+command | grep pattern | wc -l
+```
+
+The logic is:
+
+```text
+Generate data
+      ↓
+Filter data
+      ↓
+Count results
+```
+
+A good habit is to build pipelines step by step instead of writing everything at once.
+
+---
+
+## Practical Example - Finding .log Files
+
+A search can be built based on several questions:
+
+```text
+Where?
+→ /
+
+What type?
+→ regular file
+
+What filename?
+→ *.log
+
+Hide errors?
+→ 2>/dev/null
+
+Need a count?
+→ wc -l
+```
+
+Example structure:
+
+```bash
+find / -type f -name "*.log" 2>/dev/null | wc -l
+```
+
+Important:
+
+```bash
+-name "*.log"
+```
+
+means any filename ending in `.log`.
+
+This:
+
+```bash
+-name ".log"
+```
+
+would search for a file literally named `.log`.
+
+---
+
+## dpkg -l
+
+`dpkg -l` lists package information:
+
+```bash
+dpkg -l
+```
+
+Before filtering output, it is useful to inspect it:
+
+```bash
+dpkg -l | head
+```
+
+This helps understand the output format before building a pipeline.
+
+---
+
+## Installed Package State
+
+Installed package entries begin with:
+
+```text
+ii
+```
+
+The two characters represent package states:
+
+```text
+i = Install
+i = Installed
+```
+
+Installed packages can therefore be filtered with:
+
+```bash
+grep '^ii'
+```
+
+Example structure:
+
+```bash
+dpkg -l | grep '^ii' | wc -l
+```
+
+The important concept is the pipeline:
+
+```text
+dpkg
+ ↓
+generate package information
+
+grep
+ ↓
+keep installed packages
+
+wc -l
+ ↓
+count results
+```
+
+---
+
+## dpkg -l vs dpkg -L
+
+Linux options are case-sensitive.
+
+```bash
+dpkg -l
+```
+
+Lowercase `l`:
+
+```text
+List package information
+```
+
+```bash
+dpkg -L <package>
+```
+
+Uppercase `L`:
+
+```text
+List files installed by a package
+```
+
+Therefore:
+
+```text
+-l != -L
+```
+
+---
+
+## Problem-Solving Workflow
+
+When building Linux commands:
+
+```text
+1. Run the base command
+2. Inspect the output
+3. Add a filter
+4. Check the filtered output
+5. Add counting or redirection
+```
+
+Example:
+
+```bash
+dpkg -l
+```
+
+then:
+
+```bash
+dpkg -l | grep '^ii'
+```
+
+then:
+
+```bash
+dpkg -l | grep '^ii' | wc -l
+```
+
+This makes commands easier to understand and debug.
+
+---
+
+## Important Commands
+
+```bash
+command > file.txt
+command >> file.txt
+command 2> errors.txt
+command 2>/dev/null
+command < file.txt
+
+command1 | command2
+
+grep pattern
+grep -i pattern
+grep '^pattern'
+
+wc -l
+head
+
+dpkg -l
+dpkg -L <package>
+```
+
+---
+
+## Key Takeaways
+
+```text
+0 = STDIN
+1 = STDOUT
+2 = STDERR
+
+>   overwrite STDOUT
+>>  append STDOUT
+2>  redirect STDERR
+<   redirect STDIN
+|   pipe output to another command
+```
+
+The main skill developed in this section was learning to build data-processing pipelines:
+
+```text
+Generate data
+     ↓
+Redirect unwanted output
+     ↓
+Pipe useful output
+     ↓
+Filter it
+     ↓
+Count or save the final result
+```
 
 ---
 
@@ -1485,3 +2003,4 @@ Completed notes:
 - Section 8 - Working with Files and Directories
 - Section 9 - Editing Files
 - Section 10 - Find Files and Directories
+- Section 11 - File Descriptors and Redirections
