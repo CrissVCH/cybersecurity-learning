@@ -2508,6 +2508,784 @@ Inspect again
 Count / save result
 ```
 
+# Section 13 - Regular Expressions
+
+Regular Expressions (RegEx) are patterns used to search, filter, and manipulate text with more precision.
+
+RegEx can be used with tools such as:
+
+- `grep`
+- `sed`
+- Programming languages
+- Other text-processing tools
+
+Instead of searching only for exact text, RegEx allows us to describe the structure of what we want to find.
+
+---
+
+## Extended Regular Expressions
+
+With `grep`, the option:
+
+```bash
+-E
+```
+
+enables Extended Regular Expressions.
+
+Example:
+
+```bash
+grep -E "(my|false)" /etc/passwd
+```
+
+This searches for lines containing either:
+
+```text
+my
+OR
+false
+```
+
+---
+
+# Important RegEx Symbols
+
+## Parentheses `()`
+
+Used to group expressions.
+
+Example:
+
+```text
+(my|false)
+```
+
+This groups the two patterns together.
+
+---
+
+## Square Brackets `[]`
+
+Used to define a character class.
+
+Example:
+
+```text
+[a-z]
+```
+
+means:
+
+```text
+any lowercase letter from a to z
+```
+
+---
+
+## Curly Brackets `{}`
+
+Used as quantifiers.
+
+Example:
+
+```text
+{1,10}
+```
+
+means that the previous pattern can repeat between 1 and 10 times.
+
+---
+
+## OR Operator `|`
+
+The pipe inside RegEx represents:
+
+```text
+OR
+```
+
+Example:
+
+```bash
+grep -E "(my|false)" /etc/passwd
+```
+
+means:
+
+```text
+find my OR false
+```
+
+---
+
+# The `.*` Pattern
+
+Two important symbols are:
+
+```text
+. = any character
+
+* = zero or more repetitions of the previous pattern
+```
+
+Together:
+
+```text
+.*
+```
+
+means approximately:
+
+```text
+zero or more of any character
+```
+
+Example:
+
+```bash
+grep -E "my.*false" /etc/passwd
+```
+
+Conceptually:
+
+```text
+find "my"
+    ↓
+allow anything between
+    ↓
+later find "false"
+```
+
+HTB uses this as an AND-like pattern where both expressions must appear in the specified order.
+
+A similar idea can also be created using pipelines:
+
+```bash
+grep -E "my" /etc/passwd | grep -E "false"
+```
+
+---
+
+# Line Anchors
+
+## `^` - Beginning of Line
+
+```text
+^Password
+```
+
+means:
+
+```text
+the line must begin with Password
+```
+
+Example:
+
+```bash
+grep -E "^Password" file
+```
+
+This can match:
+
+```text
+PasswordAuthentication yes
+```
+
+but not:
+
+```text
+# PasswordAuthentication yes
+```
+
+because that line begins with `#`.
+
+---
+
+## `$` - End of Line
+
+```text
+yes$
+```
+
+means:
+
+```text
+the line must end with yes
+```
+
+Example:
+
+```bash
+grep -E "yes$" file
+```
+
+---
+
+# Word Boundaries
+
+Line boundaries and word boundaries are different.
+
+## `\<` - Beginning of Word
+
+```text
+\<Permit
+```
+
+means:
+
+```text
+find a word that starts with Permit
+```
+
+Examples:
+
+```text
+PermitRootLogin
+PermitEmptyPasswords
+PermitUserEnvironment
+```
+
+---
+
+## `\>` - End of Word
+
+```text
+Authentication\>
+```
+
+means:
+
+```text
+find a word that ends with Authentication
+```
+
+Examples:
+
+```text
+PasswordAuthentication
+PubkeyAuthentication
+HostbasedAuthentication
+```
+
+---
+
+# Line vs Word Anchors
+
+Important distinction:
+
+```text
+^Permit
+→ the LINE begins with Permit
+
+\<Permit
+→ a WORD begins with Permit
+```
+
+And:
+
+```text
+yes$
+→ the LINE ends with yes
+
+Authentication\>
+→ a WORD ends with Authentication
+```
+
+---
+
+# grep -w
+
+The option:
+
+```bash
+-w
+```
+
+matches a complete word.
+
+Example:
+
+```bash
+grep -w "Permit"
+```
+
+searches for the complete word:
+
+```text
+Permit
+```
+
+This is different from:
+
+```text
+\<Permit
+```
+
+because:
+
+```text
+PermitRootLogin
+```
+
+starts with `Permit`, but is not exactly the word `Permit`.
+
+---
+
+# grep -v
+
+The `-v` option inverts a match.
+
+Normal:
+
+```bash
+grep "#"
+```
+
+means:
+
+```text
+show lines containing #
+```
+
+But:
+
+```bash
+grep -v "#"
+```
+
+means:
+
+```text
+show lines NOT containing #
+```
+
+---
+
+# Practice File
+
+The exercises used:
+
+```text
+/etc/ssh/sshd_config
+```
+
+This is the SSH server configuration file.
+
+It provided a real configuration file for practicing pattern matching.
+
+---
+
+# Practice Patterns
+
+## Lines Without `#`
+
+The idea was to invert the search:
+
+```bash
+grep -v "#" /etc/ssh/sshd_config
+```
+
+Key concept:
+
+```text
+-v = exclude matching lines
+```
+
+---
+
+## Words Starting with `Permit`
+
+Important difference:
+
+```text
+^Permit
+→ line starts with Permit
+
+\<Permit
+→ word starts with Permit
+```
+
+Pattern:
+
+```text
+\<Permit
+```
+
+---
+
+## Words Ending with `Authentication`
+
+Pattern:
+
+```text
+Authentication\>
+```
+
+This can match values such as:
+
+```text
+PubkeyAuthentication
+PasswordAuthentication
+HostbasedAuthentication
+```
+
+---
+
+## Lines Containing `Key`
+
+Not every search requires complicated RegEx.
+
+Searching for:
+
+```text
+Key
+```
+
+can already match values such as:
+
+```text
+HostKey
+AuthorizedKeysFile
+AuthorizedKeysCommand
+GSSAPIKeyExchange
+```
+
+Important lesson:
+
+```text
+Use the simplest pattern that solves the problem.
+```
+
+---
+
+## Lines Beginning with `Password` and Containing `yes`
+
+Pattern:
+
+```text
+^Password.*yes
+```
+
+Breakdown:
+
+```text
+^
+→ beginning of line
+
+Password
+→ line must begin with this text
+
+.
+→ any character
+
+*
+→ zero or more repetitions
+
+.*
+→ any number of any characters
+
+yes
+→ must appear later
+```
+
+Conceptually:
+
+```text
+Beginning of line
+      ↓
+Password
+      ↓
+anything can appear here
+      ↓
+yes
+```
+
+---
+
+## Lines Ending with `yes`
+
+Pattern:
+
+```text
+yes$
+```
+
+Remember:
+
+```text
+$
+→ end of line
+```
+
+Difference:
+
+```text
+yes\>
+→ WORD ends with yes
+
+yes$
+→ LINE ends with yes
+```
+
+---
+
+# Important Mistake - `?`
+
+The:
+
+```text
+?
+```
+
+symbol does NOT mean end of line.
+
+In Extended RegEx, it means:
+
+```text
+the previous pattern appears 0 or 1 times
+```
+
+Example:
+
+```text
+yes?
+```
+
+can match:
+
+```text
+ye
+yes
+```
+
+because the `s` is optional.
+
+The correct end-of-line symbol is:
+
+```text
+$
+```
+
+---
+
+# Important Mistake - `,*` vs `.*`
+
+These expressions are very different:
+
+```text
+,*
+```
+
+means:
+
+```text
+zero or more commas
+```
+
+while:
+
+```text
+.*
+```
+
+means:
+
+```text
+zero or more of any character
+```
+
+For a pattern such as:
+
+```text
+^Password.*yes
+```
+
+the correct expression is:
+
+```text
+.*
+```
+
+---
+
+# Using man grep
+
+I do not need to memorize every RegEx expression immediately.
+
+Useful command:
+
+```bash
+man grep
+```
+
+Inside the manual, search using:
+
+```text
+/word
+```
+
+For example:
+
+```text
+/beginning
+```
+
+Useful features discovered through the manual include:
+
+```text
+\<
+\>
+-w
+```
+
+A better learning workflow is:
+
+```text
+Understand what I need
+        ↓
+Check man / --help
+        ↓
+Find the relevant syntax
+        ↓
+Test the pattern
+        ↓
+Inspect the output
+```
+
+---
+
+# RegEx Quick Reference
+
+```text
+^
+→ beginning of line
+
+$
+→ end of line
+
+\<
+→ beginning of word
+
+\>
+→ end of word
+
+.
+→ any character
+
+*
+→ zero or more repetitions
+
+.*
+→ zero or more of any character
+
+|
+→ OR
+
+()
+→ group expressions
+
+[]
+→ character class
+
+{}
+→ quantifier / repetition
+
+?
+→ previous pattern appears 0 or 1 times
+```
+
+---
+
+# grep Options Reinforced
+
+```text
+-E
+→ Extended Regular Expressions
+
+-v
+→ invert match
+
+-w
+→ complete word
+
+-i
+→ case-insensitive search
+```
+
+---
+
+# Example Pattern Breakdown
+
+```bash
+grep -E "^Password.*yes" /etc/ssh/sshd_config
+```
+
+Can be read as:
+
+```text
+^Password
+→ start the line with Password
+
+.*
+→ allow any number of characters
+
+yes
+→ later contain yes
+```
+
+Thinking about RegEx this way makes complex expressions easier to understand.
+
+---
+
+# Key Takeaway
+
+The main lesson from this section was learning the difference between searching for literal text and describing a pattern.
+
+Instead of only thinking:
+
+```text
+find this word
+```
+
+RegEx allows searches such as:
+
+```text
+find a line that starts with X
+
+find a line that ends with Y
+
+find a word that starts with X
+
+find a word that ends with Y
+
+find either A or B
+
+find A followed later by B
+```
+
+The goal is not to memorize every RegEx symbol immediately.
+
+The more important skill is:
+
+```text
+What condition am I trying to express?
+                ↓
+Find the appropriate RegEx syntax
+                ↓
+Test it
+                ↓
+Inspect the result
+```
+
+Useful references:
+
+```bash
+man grep
+grep --help
+```
+
 ---
 
 # Progress
@@ -2526,3 +3304,4 @@ Completed notes:
 - Section 10 - Find Files and Directories
 - Section 11 - File Descriptors and Redirections
 - Section 12 - Filter Contents
+- Section 13 - Regular Expressions
