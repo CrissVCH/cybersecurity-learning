@@ -1987,6 +1987,527 @@ Filter it
 Count or save the final result
 ```
 
+# Section 12 - Filter Contents
+
+This section focused on reading, filtering, transforming, organizing, and counting text directly from the Linux terminal.
+
+The main idea is to progressively process command output using small tools connected through pipes.
+
+```text
+command
+   ↓
+filter
+   ↓
+transform
+   ↓
+final result
+```
+
+---
+
+## more and less
+
+`more` and `less` are pagers used to read large files without opening them in a text editor.
+
+```bash
+cat /etc/passwd | more
+```
+
+```bash
+less /etc/passwd
+```
+
+Exit either pager with:
+
+```text
+q
+```
+
+`less` generally provides more functionality than `more`.
+
+---
+
+## head
+
+Displays the beginning of a file or command output.
+
+```bash
+head /etc/passwd
+```
+
+By default, it shows the first 10 lines.
+
+---
+
+## tail
+
+Displays the end of a file or command output.
+
+```bash
+tail /etc/passwd
+```
+
+By default, it shows the last 10 lines.
+
+---
+
+## sort
+
+Sorts text output.
+
+```bash
+cat /etc/passwd | sort
+```
+
+By default, results are sorted alphabetically.
+
+---
+
+## grep
+
+Filters lines that match a pattern.
+
+```bash
+grep "pattern"
+```
+
+Example:
+
+```bash
+cat /etc/passwd | grep "/bin/bash"
+```
+
+### Exclude matches
+
+```bash
+grep -v "pattern"
+```
+
+Example:
+
+```bash
+grep -v "false\|nologin"
+```
+
+This excludes lines containing either `false` or `nologin`.
+
+### Case-insensitive search
+
+```bash
+grep -i "pattern"
+```
+
+---
+
+## cut
+
+`cut` extracts fields from structured text.
+
+The `/etc/passwd` file uses `:` as a delimiter.
+
+Example:
+
+```bash
+cut -d":" -f1
+```
+
+Meaning:
+
+```text
+-d":"  → delimiter is :
+-f1    → return field 1
+```
+
+Multiple fields can be selected:
+
+```bash
+cut -d":" -f1,3,7
+```
+
+Important `/etc/passwd` fields:
+
+```text
+1 = Username
+3 = UID
+6 = Home directory
+7 = Shell
+```
+
+---
+
+## UID
+
+UID means:
+
+```text
+User ID
+```
+
+It is the numeric identifier Linux uses internally for a user.
+
+---
+
+## tr
+
+`tr` replaces characters.
+
+Example:
+
+```bash
+tr ":" ","
+```
+
+This changes colon-separated output into comma-separated output.
+
+---
+
+## column
+
+`column -t` formats text into aligned columns.
+
+```bash
+command | column -t
+```
+
+Its main purpose is readability.
+
+---
+
+## awk
+
+`awk` can process specific columns in text.
+
+Example:
+
+```bash
+awk '{print $1, $NF}'
+```
+
+Meaning:
+
+```text
+$1  = first field
+$NF = last field
+```
+
+Unlike `grep`, which normally searches the entire line, `awk` can target specific columns.
+
+Example:
+
+```bash
+ss -ltn4 | awk '$4 ~ /^0\.0\.0\.0:/'
+```
+
+This filters based specifically on column 4.
+
+Important lesson:
+
+```text
+Do not blindly memorize column numbers.
+Always inspect the output first.
+```
+
+---
+
+## sed
+
+`sed` is a stream editor commonly used for text substitution.
+
+Syntax:
+
+```bash
+sed 's/old/new/g'
+```
+
+Example:
+
+```bash
+sed 's/bin/HTB/g'
+```
+
+Meaning:
+
+```text
+s = substitute
+g = replace all matches
+```
+
+---
+
+## wc -l
+
+Counts lines.
+
+```bash
+wc -l
+```
+
+Example:
+
+```bash
+command | wc -l
+```
+
+Useful when each line represents one result.
+
+---
+
+# Working with /etc/passwd
+
+This section used `/etc/passwd` to practice filtering.
+
+Example pipeline:
+
+```bash
+cat /etc/passwd | cut -d":" -f1,3,7 | tr ":" ","
+```
+
+This can display:
+
+```text
+username,UID,shell
+```
+
+Filtering unwanted accounts can be added:
+
+```bash
+grep -v "false\|nologin"
+```
+
+The important concept is that every stage changes the data passed to the next stage.
+
+---
+
+# Network Filtering with ss
+
+`ss` can inspect network sockets.
+
+Useful options:
+
+```text
+-l = listening
+-t = TCP
+-n = numeric addresses and ports
+-4 = IPv4
+-u = UDP
+```
+
+Example:
+
+```bash
+ss -ltn4
+```
+
+Important addresses:
+
+```text
+0.0.0.0   = listening on all IPv4 interfaces
+127.0.0.1 = localhost only
+```
+
+A simple `grep "0.0.0.0"` can sometimes produce incorrect results because it searches the entire line.
+
+Using `awk` can filter the specific Local Address column instead.
+
+---
+
+# Process Filtering with ps
+
+Processes are associated with users.
+
+Example:
+
+```bash
+ps aux | grep -i ProFTPd
+```
+
+The first column of `ps aux` is:
+
+```text
+USER
+```
+
+Process states such as:
+
+```text
+S+
+Ss
+```
+
+belong to the `STAT` column and are not usernames.
+
+`ps` output can also be customized:
+
+```bash
+ps -Ao pid,tt,user
+```
+
+Where:
+
+```text
+-A   all processes
+-o   choose output columns
+pid  process ID
+tt   terminal
+user process owner
+```
+
+---
+
+# curl
+
+`curl` can retrieve web content from the terminal.
+
+```bash
+curl "https://example.com"
+```
+
+Silent mode:
+
+```bash
+curl -s "https://example.com"
+```
+
+This returns the page's HTML without the transfer progress information.
+
+---
+
+## href and Web Paths
+
+In HTML:
+
+```html
+<a href="/contact/">Contact</a>
+```
+
+`href` contains the destination of a hyperlink.
+
+For:
+
+```text
+https://example.com/contact/
+```
+
+the components are:
+
+```text
+https://      → protocol
+example.com   → domain
+/contact/     → path
+```
+
+---
+
+## sort -u
+
+Sort results and remove duplicates:
+
+```bash
+sort -u
+```
+
+Useful when counting unique results.
+
+---
+
+# Advanced Regex
+
+During the HTB exercises, a more advanced command was used to extract paths from HTML.
+
+The important concept was not memorizing the entire regex, but understanding the pipeline:
+
+```text
+curl
+  ↓
+retrieve HTML
+
+grep
+  ↓
+extract matching data
+
+sort -u
+  ↓
+remove duplicates
+
+wc -l
+  ↓
+count results
+```
+
+Complex regex can be learned gradually later.
+
+---
+
+# Problem-Solving Workflow
+
+A good way to build complex Linux commands is:
+
+```text
+1. Run the original command
+2. Inspect the output
+3. Add one filter
+4. Inspect again
+5. Add another transformation
+6. Verify the result
+7. Only then count or save it
+```
+
+This helps avoid getting an answer that looks correct but is actually counting the wrong information.
+
+---
+
+# Important Commands
+
+```bash
+more
+less
+head
+tail
+sort
+
+grep
+grep -v
+grep -i
+
+cut -d":" -f1
+tr ":" ","
+column -t
+
+awk '{print $1, $NF}'
+sed 's/old/new/g'
+
+wc -l
+
+ss -ltn4
+ps aux
+ps -Ao pid,tt,user
+
+curl
+curl -s
+
+sort -u
+```
+
+---
+
+# Key Takeaway
+
+The most important skill from this section was learning how to progressively reduce large amounts of data into exactly the information needed:
+
+```text
+Raw data
+   ↓
+Inspect
+   ↓
+Filter
+   ↓
+Transform
+   ↓
+Inspect again
+   ↓
+Count / save result
+```
+
 ---
 
 # Progress
@@ -2004,3 +2525,4 @@ Completed notes:
 - Section 9 - Editing Files
 - Section 10 - Find Files and Directories
 - Section 11 - File Descriptors and Redirections
+- Section 12 - Filter Contents
