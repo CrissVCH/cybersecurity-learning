@@ -731,4 +731,1085 @@ In this module, I learned:
 - How CloudFront uses edge locations for content delivery
 - What Infrastructure as Code means
 - How AWS CloudFormation automates infrastructure deployment
-- The difference between the AWS Console, CLI, SDKs, and CloudFormation
+- The difference between the AWS Console, CLI, SDKs, and CloudFormationgit status
+
+# Module 5 - Networking
+
+## Overview
+
+This module focused on networking in AWS and how resources communicate securely inside and outside the AWS Cloud.
+
+Main concepts:
+
+- Amazon VPC
+- Public and private subnets
+- Internet gateways
+- Virtual private gateways
+- VPN connections
+- AWS PrivateLink
+- AWS Direct Connect
+- Transit Gateway
+- NAT Gateway
+- API Gateway
+- Network ACLs
+- Security Groups
+- Route tables
+- DNS and Route 53
+- CloudFront
+- Global Accelerator
+
+---
+
+# Amazon VPC
+
+Amazon Virtual Private Cloud (VPC) provides a logically isolated virtual network inside AWS.
+
+A VPC gives control over:
+
+- Resource placement
+- Connectivity
+- Network security
+- Traffic flow
+
+Conceptually:
+
+```text
+AWS Cloud
+   ↓
+Region
+   ↓
+VPC
+   ↓
+Subnets
+   ↓
+AWS Resources
+```
+
+A VPC acts as a network boundary around AWS resources.
+
+---
+
+# Subnets
+
+A subnet is a range of IP addresses inside a VPC.
+
+Subnets help organize resources based on security and operational requirements.
+
+There are two important types:
+
+## Public Subnet
+
+Designed for resources that need internet accessibility.
+
+Examples:
+
+- Public web servers
+- Customer-facing applications
+
+A public subnet can use an Internet Gateway to communicate with the internet.
+
+## Private Subnet
+
+Designed for resources that should not be directly exposed to the internet.
+
+Examples:
+
+- Databases
+- Internal application servers
+- Sensitive backend systems
+
+A common architecture is:
+
+```text
+Internet
+   ↓
+Public Subnet
+   ↓
+Application
+   ↓
+Private Subnet
+   ↓
+Database
+```
+
+---
+
+## VPC Architecture Overview
+
+```mermaid
+flowchart TB
+    INTERNET((Internet))
+
+    subgraph AWS["AWS Region"]
+        subgraph VPC["Amazon VPC"]
+
+            IGW["Internet Gateway"]
+
+            subgraph AZA["Availability Zone A"]
+
+                subgraph PUBLIC["Public Subnet"]
+                    WEB["EC2 Web Server"]
+                    NAT["NAT Gateway"]
+                end
+
+                subgraph PRIVATE["Private Subnet"]
+                    APP["Application Server"]
+                    DB["Database"]
+                end
+
+            end
+        end
+    end
+
+    INTERNET <--> IGW
+    IGW <--> WEB
+    APP --> NAT
+    NAT --> IGW
+    APP --> DB
+```
+
+Mental model:
+
+```text
+AWS Region
+└── VPC
+    ├── Public Subnet
+    │   ├── EC2 Web Server
+    │   └── NAT Gateway
+    │
+    └── Private Subnet
+        ├── Application Server
+        └── Database
+```
+
+Important:
+
+```text
+Public subnet
+→ resources that may need direct internet connectivity
+
+Private subnet
+→ resources that should not be directly exposed
+
+Internet Gateway
+→ connects the VPC to the internet
+
+NAT Gateway
+→ lets private resources initiate outbound internet connections
+```
+
+---
+
+# Internet Gateway
+
+An Internet Gateway connects a VPC to the public internet.
+
+```text
+Internet
+   ↕
+Internet Gateway
+   ↕
+VPC
+```
+
+Without an Internet Gateway and appropriate routing, resources cannot directly communicate with the public internet.
+
+---
+
+# Virtual Private Gateway
+
+A Virtual Private Gateway allows protected VPN traffic to enter a VPC.
+
+It can connect:
+
+```text
+On-Premises Network
+        ↓
+Encrypted VPN
+        ↓
+Virtual Private Gateway
+        ↓
+VPC
+```
+
+The VPN protects traffic traveling across the public internet.
+
+---
+
+# VPN
+
+A Virtual Private Network (VPN) creates an encrypted tunnel over the internet.
+
+Its purpose is to protect data from interception while it travels between networks.
+
+---
+
+# AWS Client VPN
+
+AWS Client VPN provides secure remote access to AWS and on-premises resources.
+
+Typical use case:
+
+```text
+Remote Employee
+      ↓
+Client VPN
+      ↓
+AWS Resources
+```
+
+Key characteristics:
+
+- Fully managed
+- Elastic
+- Secure remote access
+- Automatically scales with user demand
+
+---
+
+# AWS Site-to-Site VPN
+
+Site-to-Site VPN securely connects an entire network to AWS.
+
+Example:
+
+```text
+Company Data Center
+        ↓
+Encrypted VPN
+        ↓
+AWS VPC
+```
+
+Common uses:
+
+- Connecting branch offices
+- Hybrid cloud
+- Connecting data centers to AWS
+
+---
+
+# AWS PrivateLink
+
+AWS PrivateLink allows private connectivity between a VPC and supported services or resources.
+
+It avoids the need to send traffic through:
+
+- Public internet
+- Internet Gateway
+- NAT
+- Public IP addresses
+- Site-to-Site VPN
+
+Conceptually:
+
+```text
+Private VPC
+    ↓
+PrivateLink
+    ↓
+Service / Resource
+```
+
+The connection remains private.
+
+---
+
+# AWS Direct Connect
+
+AWS Direct Connect provides a dedicated private connection between an organization and AWS.
+
+Unlike a VPN, Direct Connect does not primarily depend on the public internet.
+
+```text
+Company Network
+      ↓
+Dedicated Connection
+      ↓
+AWS
+```
+
+Useful for:
+
+- High bandwidth
+- Large data transfers
+- Consistent network performance
+- Latency-sensitive workloads
+- Hybrid cloud environments
+
+Multiple Direct Connect connections can also provide redundancy and additional bandwidth.
+
+---
+
+## AWS Connectivity Overview
+
+```mermaid
+flowchart LR
+    USER["Remote User"]
+    OFFICE["Office / Data Center"]
+    SERVICE["AWS Service / Resource"]
+
+    USER --> CLIENT["AWS Client VPN"]
+    CLIENT --> VPC["Amazon VPC"]
+
+    OFFICE --> S2S["Site-to-Site VPN"]
+    S2S --> VPC
+
+    OFFICE --> DX["AWS Direct Connect"]
+    DX --> VPC
+
+    VPC --> PL["AWS PrivateLink"]
+    PL --> SERVICE
+```
+
+Quick mental model:
+
+```text
+Remote User
+   ↓
+Client VPN
+   ↓
+AWS
+
+Office / Data Center
+   ↓
+Site-to-Site VPN
+   ↓
+AWS
+
+Office / Data Center
+   ↓
+Direct Connect
+   ↓
+Dedicated private connection
+   ↓
+AWS
+
+VPC
+   ↓
+PrivateLink
+   ↓
+Private AWS service/resource
+```
+
+---
+
+# Additional Gateway Services
+
+## AWS Transit Gateway
+
+Transit Gateway acts as a central networking hub.
+
+It can connect:
+
+- Multiple VPCs
+- On-premises networks
+- Different network environments
+
+```mermaid
+flowchart TB
+    TGW["AWS Transit Gateway"]
+
+    VPC1["VPC A"] --> TGW
+    VPC2["VPC B"] --> TGW
+    VPC3["VPC C"] --> TGW
+    ONPREM["On-Premises Network"] --> TGW
+```
+
+Mental model:
+
+```text
+        VPC A
+          │
+VPC B ── TGW ── VPC C
+          │
+      On-Premises
+```
+
+---
+
+## NAT Gateway
+
+A NAT Gateway allows resources in a private subnet to initiate connections outside the VPC.
+
+External systems cannot directly initiate connections back to those private instances.
+
+Example:
+
+```text
+Private EC2
+    ↓
+NAT Gateway
+    ↓
+Internet
+```
+
+Important:
+
+```text
+Private instance → Internet
+YES
+
+Internet → Private instance directly
+NO
+```
+
+---
+
+## Amazon API Gateway
+
+API Gateway is used to:
+
+- Create APIs
+- Publish APIs
+- Maintain APIs
+- Monitor APIs
+- Secure APIs
+
+It handles communication between clients and backend applications or services.
+
+---
+
+# Network Traffic in a VPC
+
+Network traffic is transferred using packets.
+
+A packet entering a VPC can pass through several security controls before reaching a resource.
+
+A simplified flow can look like:
+
+```text
+Internet
+   ↓
+Internet Gateway
+   ↓
+Network ACL
+   ↓
+Subnet
+   ↓
+Security Group
+   ↓
+EC2 Instance
+```
+
+This introduces two important AWS network security controls:
+
+```text
+Network ACL
+Security Group
+```
+
+---
+
+# Network ACLs
+
+A Network Access Control List (NACL) controls traffic at the:
+
+```text
+Subnet level
+```
+
+It controls:
+
+- Inbound traffic
+- Outbound traffic
+
+Network ACLs support:
+
+```text
+ALLOW rules
+DENY rules
+```
+
+## Stateless Filtering
+
+Network ACLs are stateless.
+
+This means they do not remember previous traffic.
+
+If traffic leaves:
+
+```text
+Request
+   →
+```
+
+the returning traffic:
+
+```text
+Response
+   ←
+```
+
+must also be independently evaluated against the NACL rules.
+
+Conceptually:
+
+```text
+Inbound packet
+→ check rules
+
+Outbound packet
+→ check rules again
+```
+
+---
+
+# Security Groups
+
+Security Groups control traffic at the:
+
+```text
+Resource / instance level
+```
+
+For example:
+
+```text
+EC2 Instance
+```
+
+By default:
+
+```text
+Inbound
+→ denied unless explicitly allowed
+
+Outbound
+→ allowed
+```
+
+Security Groups primarily use allow rules.
+
+---
+
+## Stateful Filtering
+
+Security Groups are stateful.
+
+This means they remember connections.
+
+If an EC2 instance sends an allowed request:
+
+```text
+EC2 → Internet
+```
+
+the response can return:
+
+```text
+Internet → EC2
+```
+
+without requiring a separate inbound Security Group rule specifically for that response.
+
+---
+
+# Security Group vs Network ACL
+
+| Security Group | Network ACL |
+|---|---|
+| Resource level | Subnet level |
+| Stateful | Stateless |
+| Controls inbound/outbound | Controls inbound/outbound |
+| Primarily Allow rules | Allow and Deny rules |
+| Remembers connections | Checks both directions independently |
+
+Easy way to remember:
+
+```text
+Security Group
+→ guards the RESOURCE
+
+Network ACL
+→ guards the SUBNET
+```
+
+---
+
+## NACL and Security Group Placement
+
+```mermaid
+flowchart LR
+    INTERNET((Internet))
+
+    INTERNET --> NACL
+
+    subgraph SUBNET["Subnet"]
+        NACL["Network ACL\nSubnet Level\nStateless"]
+        SG["Security Group\nResource Level\nStateful"]
+        EC2["EC2 Instance"]
+
+        NACL --> SG
+        SG --> EC2
+    end
+```
+
+Mental model:
+
+```text
+                 SUBNET
+┌────────────────────────────────────┐
+│                                    │
+│       Network ACL boundary         │
+│                                    │
+│            ┌───────────┐           │
+│            │ Security  │           │
+│            │   Group   │           │
+│            │           │           │
+│            │    EC2    │           │
+│            └───────────┘           │
+│                                    │
+└────────────────────────────────────┘
+```
+
+Remember:
+
+```text
+NACL
+→ protects the subnet boundary
+→ stateless
+
+Security Group
+→ protects the resource
+→ stateful
+```
+
+---
+
+# Shared Responsibility
+
+AWS provides the networking infrastructure.
+
+The customer is responsible for correctly configuring controls such as:
+
+- Security Groups
+- Network ACLs
+- Subnets
+- Network access rules
+
+This belongs to:
+
+```text
+Security IN the cloud
+```
+
+---
+
+# Route Tables
+
+Route tables determine where network traffic should be sent.
+
+They contain routes that define:
+
+```text
+Destination
+→ Where the traffic should go
+```
+
+For a public subnet, a route can direct internet traffic toward an Internet Gateway.
+
+Conceptually:
+
+```text
+Public Subnet
+     ↓
+Route Table
+     ↓
+Internet Gateway
+     ↓
+Internet
+```
+
+---
+
+# Building a Basic VPC
+
+A basic AWS network could be created in this order:
+
+```text
+1. Choose Region
+2. Create VPC
+3. Create public/private subnets
+4. Place subnets across multiple AZs
+5. Create Internet Gateway
+6. Attach Internet Gateway to VPC
+7. Create route tables
+8. Configure routes
+9. Associate subnets
+10. Configure Security Groups / NACLs
+11. Deploy resources
+```
+
+Using multiple Availability Zones improves high availability.
+
+A simplified multi-AZ architecture:
+
+```mermaid
+flowchart TB
+    INTERNET((Internet))
+    IGW["Internet Gateway"]
+
+    subgraph VPC["Amazon VPC"]
+
+        subgraph AZA["Availability Zone A"]
+            PUBA["Public Subnet"]
+            PRIVA["Private Subnet"]
+        end
+
+        subgraph AZB["Availability Zone B"]
+            PUBB["Public Subnet"]
+            PRIVB["Private Subnet"]
+        end
+
+    end
+
+    INTERNET <--> IGW
+    IGW --> PUBA
+    IGW --> PUBB
+```
+
+This provides redundancy across separate Availability Zones.
+
+---
+
+# DNS
+
+DNS means:
+
+```text
+Domain Name System
+```
+
+DNS translates human-readable domain names into IP addresses.
+
+Example:
+
+```text
+example.com
+     ↓
+DNS
+     ↓
+192.0.2.10
+```
+
+DNS resolution allows users to access applications using names instead of remembering IP addresses.
+
+---
+
+# Amazon Route 53
+
+Amazon Route 53 is AWS's scalable DNS service.
+
+It can:
+
+- Route users to applications
+- Manage DNS records
+- Register domain names
+- Perform health checks
+- Use routing policies
+- Route to AWS or external infrastructure
+
+Conceptually:
+
+```text
+User
+ ↓
+Domain Name
+ ↓
+Route 53
+ ↓
+IP / AWS Resource
+```
+
+---
+
+# Amazon CloudFront
+
+Amazon CloudFront is a Content Delivery Network (CDN).
+
+It uses AWS edge locations to cache and deliver content closer to users.
+
+Benefits include:
+
+- Lower latency
+- Faster loading
+- High transfer speeds
+- Global content delivery
+
+Conceptually:
+
+```text
+Origin Server
+     ↓
+CloudFront
+     ↓
+Edge Location
+     ↓
+User
+```
+
+Instead of every request reaching a distant origin server, cached content can be delivered from a nearby edge location.
+
+---
+
+# Route 53 + CloudFront
+
+Route 53 and CloudFront can work together to deliver global applications.
+
+```mermaid
+flowchart LR
+    USER["User"]
+    DNS["Amazon Route 53\nDNS"]
+    CF["Amazon CloudFront\nEdge Location"]
+    ALB["Application Load Balancer"]
+    EC2A["EC2 - AZ A"]
+    EC2B["EC2 - AZ B"]
+
+    USER --> DNS
+    DNS --> CF
+    CF --> ALB
+    ALB --> EC2A
+    ALB --> EC2B
+```
+
+Conceptually:
+
+```text
+User
+ ↓
+Route 53
+DNS / routing
+ ↓
+CloudFront
+Edge location / cached content
+ ↓
+Load Balancer
+ ↓
+Application Resources
+```
+
+This combines:
+
+```text
+DNS
++
+Edge networking
++
+Load balancing
++
+Multiple Availability Zones
+```
+
+to improve performance and availability.
+
+---
+
+# AWS Global Accelerator
+
+AWS Global Accelerator uses the AWS global network to improve:
+
+- Application performance
+- Availability
+- Reliability
+- Security
+
+Instead of relying only on normal public internet routing, traffic can enter the AWS global network and be routed more efficiently.
+
+Useful for applications requiring:
+
+- Low latency
+- Fast failover
+- Reliable global access
+
+Examples include:
+
+- Gaming
+- Financial applications
+- Global services
+
+---
+
+# CloudFront vs Global Accelerator
+
+A useful high-level distinction:
+
+```text
+CloudFront
+→ CDN
+→ caches and delivers content closer to users
+
+Global Accelerator
+→ network routing optimization
+→ improves global connectivity and failover
+```
+
+---
+
+# Global AWS Architecture
+
+A global application could use:
+
+```mermaid
+flowchart TB
+    USERS["Global Users"]
+    R53["Amazon Route 53"]
+    CF["Amazon CloudFront"]
+
+    USERS --> R53
+    R53 --> CF
+
+    CF --> REGIONA
+    CF --> REGIONB
+
+    subgraph REGIONA["Region A"]
+        AZA1["Availability Zone A"]
+        AZA2["Availability Zone B"]
+    end
+
+    subgraph REGIONB["Region B"]
+        AZB1["Availability Zone A"]
+        AZB2["Availability Zone B"]
+    end
+```
+
+This type of architecture can improve:
+
+- Availability
+- Fault tolerance
+- Global performance
+- Low latency
+
+---
+
+# Important Concepts to Remember
+
+## Basic AWS Network
+
+```text
+AWS Cloud
+   ↓
+Region
+   ↓
+VPC
+   ↓
+Subnet
+   ↓
+Resources
+```
+
+---
+
+## Public Internet Access
+
+```text
+EC2 in Public Subnet
+        ↓
+Route Table
+        ↓
+Internet Gateway
+        ↓
+Internet
+```
+
+---
+
+## Private Internet Access
+
+```text
+EC2 in Private Subnet
+        ↓
+NAT Gateway
+        ↓
+Internet Gateway
+        ↓
+Internet
+```
+
+The internet cannot directly initiate a connection back to the private instance.
+
+---
+
+## Hybrid Connection
+
+```text
+On-Premises Network
+       ↓
+VPN
+or
+Direct Connect
+       ↓
+AWS VPC
+```
+
+---
+
+## Network Security
+
+```text
+Network ACL
+→ Subnet level
+→ Stateless
+
+Security Group
+→ Resource level
+→ Stateful
+```
+
+---
+
+## Global Networking
+
+```text
+Route 53
+→ DNS
+
+CloudFront
+→ CDN / caching
+
+Global Accelerator
+→ global network routing / performance
+```
+
+---
+
+## Connectivity
+
+```text
+Client VPN
+→ Individual remote users
+
+Site-to-Site VPN
+→ Network-to-network encrypted connection
+
+Direct Connect
+→ Dedicated private connection
+
+PrivateLink
+→ Private access to services/resources
+```
+
+---
+
+# Module 5 Summary
+
+In this module, I learned:
+
+- What a VPC is and why AWS uses isolated virtual networks
+- The difference between public and private subnets
+- How Internet Gateways connect VPCs to the internet
+- How VPNs and Virtual Private Gateways protect network connections
+- The differences between Client VPN and Site-to-Site VPN
+- What AWS PrivateLink does
+- When Direct Connect is useful
+- How Transit Gateway connects multiple networks through a central hub
+- How NAT Gateway provides outbound internet access for private resources
+- What API Gateway is used for
+- The difference between Network ACLs and Security Groups
+- The difference between stateless and stateful filtering
+- How route tables direct network traffic
+- How multi-AZ architectures improve availability
+- How DNS works
+- What Route 53 provides
+- How CloudFront uses edge locations
+- How Global Accelerator improves global network performance
