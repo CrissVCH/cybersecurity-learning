@@ -3286,6 +3286,529 @@ man grep
 grep --help
 ```
 
+# Section 14 - Permission Management
+
+Linux permissions control who can access, modify, or execute files and directories.
+
+Every file and directory has:
+
+- An owner
+- A group
+- Permissions for the owner
+- Permissions for the group
+- Permissions for others
+
+---
+
+## Permission Types
+
+Linux uses three basic permissions:
+
+```text
+r = read
+w = write
+x = execute
+```
+
+Their octal values are:
+
+```text
+r = 4
+w = 2
+x = 1
+```
+
+Permissions are divided into:
+
+```text
+owner | group | others
+```
+
+Example:
+
+```text
+-rwxr-xr--
+```
+
+Breakdown:
+
+```text
+- | rwx | r-x | r--
+    owner group others
+```
+
+Which becomes:
+
+```text
+owner  = rwx = 7
+group  = r-x = 5
+others = r-- = 4
+```
+
+Therefore:
+
+```text
+754
+```
+
+---
+
+# File Types
+
+The first character in `ls -l` shows the object type.
+
+```text
+- = regular file
+d = directory
+l = symbolic link
+```
+
+Examples:
+
+```text
+-rw-r--r--
+→ regular file
+```
+
+```text
+drwxr-xr-x
+→ directory
+```
+
+---
+
+# Common Octal Values
+
+```text
+7 = rwx
+6 = rw-
+5 = r-x
+4 = r--
+3 = -wx
+2 = -w-
+1 = --x
+0 = ---
+```
+
+The values are added together.
+
+Example:
+
+```text
+rwx
+4 + 2 + 1
+= 7
+```
+
+```text
+r-x
+4 + 1
+= 5
+```
+
+---
+
+# chmod
+
+`chmod` changes permissions.
+
+There are two common methods:
+
+```text
+Octal
+Symbolic
+```
+
+---
+
+## Octal chmod
+
+Example:
+
+```bash
+chmod 754 file
+```
+
+Means:
+
+```text
+owner  = rwx
+group  = r-x
+others = r--
+```
+
+Another common example:
+
+```bash
+chmod 644 file
+```
+
+Means:
+
+```text
+owner  = rw-
+group  = r--
+others = r--
+```
+
+---
+
+## Symbolic chmod
+
+Permission targets:
+
+```text
+u = user / owner
+g = group
+o = others
+a = all
+```
+
+Operators:
+
+```text
++ = add permission
+- = remove permission
+```
+
+Examples:
+
+```bash
+chmod g+w file
+```
+
+Adds write permission to the group.
+
+```bash
+chmod o-r file
+```
+
+Removes read permission from others.
+
+```bash
+chmod a+x file
+```
+
+Adds execute permission to everyone.
+
+---
+
+# File vs Directory Permissions
+
+The meaning of `x` depends on the object.
+
+For a file:
+
+```text
+x
+→ execute the file
+```
+
+For a directory:
+
+```text
+x
+→ traverse / access the directory
+```
+
+Without execute permission on a directory:
+
+```bash
+cd directory
+```
+
+may return:
+
+```text
+Permission denied
+```
+
+For directories:
+
+```text
+r
+→ list directory entries
+
+w
+→ create, delete, or rename items
+
+x
+→ enter / traverse the directory
+```
+
+This is an important distinction.
+
+---
+
+# Reading ls -l
+
+Example:
+
+```text
+-rw-r--r-- 1 user group 0 Oct 6 02:04 test.txt
+```
+
+Important fields:
+
+```text
+-rw-r--r--
+→ file type and permissions
+
+1
+→ number of hard links
+
+user
+→ owner
+
+group
+→ group
+
+0
+→ file size
+
+Oct 6 02:04
+→ modification date/time
+
+test.txt
+→ filename
+```
+
+---
+
+# chown
+
+`chown` changes the owner and/or group of a file or directory.
+
+Syntax:
+
+```bash
+chown user:group file
+```
+
+Example:
+
+```bash
+chown root:root shell
+```
+
+Changes:
+
+```text
+owner → root
+group → root
+```
+
+---
+
+# SUID
+
+SUID means:
+
+```text
+Set User ID
+```
+
+Normally:
+
+```text
+user executes program
+        ↓
+program runs as that user
+```
+
+With SUID:
+
+```text
+user executes program
+        ↓
+program runs with the file owner's privileges
+```
+
+Example:
+
+```text
+-rwsr-xr-x
+```
+
+The:
+
+```text
+s
+```
+
+in the owner execute position indicates SUID.
+
+This can become dangerous if the owner is `root` and the program can launch commands or shells.
+
+This is important later for privilege escalation.
+
+---
+
+# SGID
+
+SGID means:
+
+```text
+Set Group ID
+```
+
+It works similarly to SUID, but uses the privileges of the file's group.
+
+Example:
+
+```text
+-rwxr-sr-x
+```
+
+The:
+
+```text
+s
+```
+
+in the group execute position indicates SGID.
+
+Quick comparison:
+
+```text
+SUID
+→ use file owner's privileges
+
+SGID
+→ use file group's privileges
+```
+
+---
+
+# Sticky Bit
+
+The sticky bit is mainly used on shared directories.
+
+It prevents users from deleting or renaming files they do not own.
+
+Normally, only:
+
+```text
+file owner
+directory owner
+root
+```
+
+can delete or rename files inside a sticky-bit directory.
+
+Representation:
+
+```text
+t
+```
+
+means:
+
+```text
+sticky bit enabled
++
+execute permission exists for others
+```
+
+```text
+T
+```
+
+means:
+
+```text
+sticky bit enabled
++
+execute permission for others is NOT set
+```
+
+---
+
+# Permission Quick Reference
+
+```text
+r = read    = 4
+w = write   = 2
+x = execute = 1
+```
+
+```text
+u = owner
+g = group
+o = others
+a = all
+```
+
+```text
+chmod
+→ change permissions
+
+chown
+→ change owner/group
+```
+
+---
+
+# Important Commands
+
+```bash
+ls -l
+
+chmod 754 file
+chmod 644 file
+
+chmod g+w file
+chmod o-r file
+chmod a+x file
+
+chown user:group file
+```
+
+---
+
+# Key Takeaway
+
+The most important practical skill from this section is being able to look at:
+
+```text
+-rwxr-xr--
+```
+
+and understand:
+
+```text
+owner  = rwx = 7
+group  = r-x = 5
+others = r-- = 4
+```
+
+Therefore:
+
+```text
+754
+```
+
+Also remember:
+
+```text
+x on file
+→ execute
+
+x on directory
+→ traverse
+```
+
+And from a cybersecurity perspective:
+
+```text
+SUID / SGID
+→ may run with elevated owner/group privileges
+→ important later in privilege escalation
+
+Sticky Bit
+→ protects files in shared directories
+```
+
 ---
 
 # Progress
@@ -3305,3 +3828,4 @@ Completed notes:
 - Section 11 - File Descriptors and Redirections
 - Section 12 - Filter Contents
 - Section 13 - Regular Expressions
+- Section 14 - Permission Management
