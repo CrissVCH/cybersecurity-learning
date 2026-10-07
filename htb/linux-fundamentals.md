@@ -3809,6 +3809,590 @@ Sticky Bit
 → protects files in shared directories
 ```
 
+# Section 15 - User Management
+
+This section focused on managing Linux users and groups and understanding how identity, ownership, and permissions work together.
+
+Main concepts:
+
+- Creating and deleting users
+- Managing passwords
+- Switching users
+- Creating and managing groups
+- Running commands with elevated privileges
+- Understanding primary and supplementary groups
+- Connecting users/groups with file permissions
+
+---
+
+## /etc/passwd
+
+General Linux user account information is stored in:
+
+```text
+/etc/passwd
+```
+
+Example:
+
+```text
+alexlab:x:1003:1004::/home/alexlab:/bin/bash
+```
+
+Structure:
+
+```text
+username : password : UID : GID : comment : home : shell
+```
+
+Important fields:
+
+```text
+1 = username
+3 = UID
+4 = primary GID
+6 = home directory
+7 = login shell
+```
+
+Example using `cut`:
+
+```bash
+cut -d":" -f1,3,7 /etc/passwd
+```
+
+This extracts:
+
+```text
+username : UID : shell
+```
+
+---
+
+## /etc/shadow
+
+Sensitive password-related information is stored in:
+
+```text
+/etc/shadow
+```
+
+Normal users usually cannot read it.
+
+```bash
+cat /etc/shadow
+```
+
+may return:
+
+```text
+Permission denied
+```
+
+With appropriate privileges:
+
+```bash
+sudo cat /etc/shadow
+```
+
+---
+
+# sudo
+
+`sudo` executes a command with elevated or different-user privileges.
+
+Example:
+
+```bash
+sudo cat /etc/shadow
+```
+
+Conceptually:
+
+```text
+normal user
+    ↓
+sudo
+    ↓
+elevated command
+```
+
+Not every user automatically has permission to use `sudo`.
+
+---
+
+# su
+
+`su` switches to another user.
+
+```bash
+su - alexlab
+```
+
+The `-` creates a login-style environment for that user.
+
+```text
+su alexlab
+→ switch user
+
+su - alexlab
+→ switch user
+→ load user's HOME
+→ load login environment
+→ use user's login shell
+```
+
+Useful commands after switching:
+
+```bash
+whoami
+pwd
+id
+```
+
+---
+
+# useradd
+
+Creates a user account.
+
+Example:
+
+```bash
+sudo useradd -m -s /bin/bash alexlab
+```
+
+Meaning:
+
+```text
+-m
+→ create home directory
+
+-s /bin/bash
+→ set login shell
+
+alexlab
+→ username
+```
+
+This creates:
+
+```text
+/home/alexlab
+```
+
+---
+
+# Verifying Users
+
+Display user and group information:
+
+```bash
+id alexlab
+```
+
+Example:
+
+```text
+uid=1003(alexlab)
+gid=1004(alexlab)
+groups=1004(alexlab)
+```
+
+Search `/etc/passwd`:
+
+```bash
+grep "alexlab" /etc/passwd
+```
+
+Retrieve the account through system databases:
+
+```bash
+getent passwd alexlab
+```
+
+---
+
+# passwd
+
+Set or change a user's password:
+
+```bash
+sudo passwd alexlab
+```
+
+The password is not displayed while typing.
+
+---
+
+# Groups
+
+Linux users can have:
+
+```text
+one primary group
++
+zero or more supplementary groups
+```
+
+Create a group:
+
+```bash
+sudo addgroup labteam
+```
+
+Verify it:
+
+```bash
+getent group labteam
+```
+
+Example:
+
+```text
+labteam:x:1003:
+```
+
+---
+
+# getent
+
+`getent` retrieves entries from system databases.
+
+Useful examples:
+
+```bash
+getent passwd USER
+getent group GROUP
+```
+
+Mental model:
+
+```text
+getent
+→ get entry
+```
+
+---
+
+# usermod
+
+Modify an existing user.
+
+Example:
+
+```bash
+sudo usermod -aG labteam alexlab
+```
+
+Meaning:
+
+```text
+-a
+→ append
+
+-G
+→ supplementary groups
+
+labteam
+→ group
+
+alexlab
+→ user
+```
+
+This adds `alexlab` to `labteam` without removing existing supplementary groups.
+
+Important:
+
+```text
+-G without -a
+```
+
+can replace the user's current supplementary group list.
+
+---
+
+# Primary vs Supplementary Groups
+
+Example:
+
+```text
+gid=1004(alexlab)
+```
+
+means:
+
+```text
+primary group = alexlab
+```
+
+While:
+
+```text
+groups=1004(alexlab),1003(labteam)
+```
+
+means:
+
+```text
+alexlab
+→ primary group
+
+labteam
+→ supplementary group
+```
+
+---
+
+# Home Directory ~
+
+The symbol:
+
+```text
+~
+```
+
+represents the current user's home directory.
+
+For `alexlab`:
+
+```text
+~
+=
+/home/alexlab
+```
+
+Example:
+
+```bash
+touch ~/alex-file.txt
+```
+
+is equivalent to:
+
+```bash
+touch /home/alexlab/alex-file.txt
+```
+
+---
+
+# ls -ld
+
+To inspect a directory itself:
+
+```bash
+ls -ld /home/alexlab
+```
+
+Without `-d`:
+
+```bash
+ls -l /home/alexlab
+```
+
+tries to list its contents.
+
+Example:
+
+```text
+drwx------ ... alexlab alexlab ... /home/alexlab
+```
+
+means:
+
+```text
+owner = alexlab
+group = alexlab
+
+owner  = rwx
+group  = ---
+others = ---
+```
+
+---
+
+# Running a Command as Another User
+
+Instead of switching the whole shell:
+
+```bash
+sudo -u alexlab whoami
+```
+
+runs only that command as `alexlab`.
+
+Another example:
+
+```bash
+sudo -u alexlab touch /home/alexlab/from-sudo.txt
+```
+
+Conceptually:
+
+```text
+sudo -u USER COMMAND
+→ execute one command as USER
+```
+
+---
+
+# Shared Group Directory
+
+A useful lab combined users, groups, ownership, and permissions.
+
+```bash
+sudo mkdir /tmp/labshared
+sudo chown root:labteam /tmp/labshared
+sudo chmod 770 /tmp/labshared
+```
+
+Result:
+
+```text
+drwxrwx--- root labteam /tmp/labshared
+```
+
+Meaning:
+
+```text
+owner = root
+→ rwx
+
+group = labteam
+→ rwx
+
+others
+→ ---
+```
+
+Because `alexlab` belongs to `labteam`, the user can access the directory using group permissions.
+
+This demonstrates:
+
+```text
+USER
+ ↓
+belongs to GROUPS
+ ↓
+files/directories have OWNER + GROUP
+ ↓
+rwx permissions determine access
+```
+
+---
+
+# userdel
+
+Delete a user:
+
+```bash
+sudo userdel alexlab
+```
+
+Delete the user and also remove their home directory and related files:
+
+```bash
+sudo userdel -r alexlab
+```
+
+Important:
+
+```text
+-r
+```
+
+here belongs specifically to `userdel`.
+
+---
+
+# Command Options Are Command-Specific
+
+Options do not always mean the same thing.
+
+Example:
+
+```text
+rm -r
+→ recursive
+
+userdel -r
+→ remove user home and related files
+```
+
+Always check options using:
+
+```bash
+COMMAND --help
+```
+
+or:
+
+```bash
+man COMMAND
+```
+
+---
+
+# Important Commands
+
+```bash
+sudo COMMAND
+
+su - USER
+
+useradd
+userdel
+usermod
+passwd
+
+addgroup
+delgroup
+
+id USER
+groups USER
+whoami
+
+getent passwd USER
+getent group GROUP
+
+ls -ld DIRECTORY
+
+sudo -u USER COMMAND
+```
+
+---
+
+# Key Takeaway
+
+Linux access control depends on several pieces working together:
+
+```text
+user identity
++
+group membership
++
+file/directory ownership
++
+rwx permissions
+```
+
+A user does not need to own a resource directly if one of their groups has the required permissions.
+
+This section connected:
+
+```text
+User Management
++
+Group Management
++
+Ownership
++
+Permission Management
+```
+
+into one complete access-control model.
+
 ---
 
 # Progress
@@ -3829,3 +4413,4 @@ Completed notes:
 - Section 12 - Filter Contents
 - Section 13 - Regular Expressions
 - Section 14 - Permission Management
+- Section 15 - User Management
