@@ -4393,6 +4393,638 @@ Permission Management
 
 into one complete access-control model.
 
+# Section 16 - Package Management
+
+This section focused on how Linux software can be searched, downloaded, installed, updated, and managed.
+
+A package can contain:
+
+- Program binaries
+- Configuration files
+- Dependency information
+- Installation metadata
+- Update information
+
+Package managers help automate software installation and track installed software.
+
+---
+
+## Package Management Tools
+
+Important tools introduced:
+
+```text
+apt
+→ high-level Debian package manager
+
+dpkg
+→ low-level Debian package manager
+
+aptitude
+→ alternative high-level APT interface
+
+snap
+→ Snap package manager
+
+gem
+→ Ruby package manager
+
+pip
+→ Python package installer
+
+git
+→ retrieves repositories/source code
+```
+
+Important:
+
+```text
+git clone
+→ downloads repository files
+
+package manager
+→ installs software
+```
+
+Cloning a repository does not automatically mean the software is installed.
+
+---
+
+# Dependencies
+
+Software packages can require other packages to work.
+
+These are called:
+
+```text
+dependencies
+```
+
+Conceptually:
+
+```text
+Application
+    ↓
+Library A
+    ↓
+Library B
+```
+
+High-level package managers such as APT help resolve dependencies automatically.
+
+---
+
+# Debian Packages
+
+Debian-based systems commonly use:
+
+```text
+.deb
+```
+
+Example:
+
+```text
+tree_2.2.1-1_amd64.deb
+```
+
+Breakdown:
+
+```text
+tree
+→ package name
+
+2.2.1-1
+→ version
+
+amd64
+→ architecture
+
+.deb
+→ Debian package
+```
+
+---
+
+# APT
+
+APT is the high-level package manager used on Debian-based distributions.
+
+It can:
+
+```text
+search packages
+retrieve information
+download packages
+install packages
+handle dependencies
+upgrade software
+```
+
+APT uses software repositories.
+
+Conceptually:
+
+```text
+APT
+ ↓
+Repository
+ ↓
+Package
+ ↓
+Dependencies
+ ↓
+Installation
+```
+
+---
+
+## apt update vs apt upgrade
+
+```bash
+sudo apt update
+```
+
+Updates information about available packages.
+
+```bash
+sudo apt upgrade
+```
+
+Upgrades installed packages.
+
+Important:
+
+```text
+apt update
+≠
+apt upgrade
+```
+
+---
+
+# Searching Packages
+
+Search available packages:
+
+```bash
+apt-cache search PACKAGE
+```
+
+Example:
+
+```bash
+apt-cache search impacket
+```
+
+Inspect package information:
+
+```bash
+apt-cache show PACKAGE
+```
+
+Example:
+
+```bash
+apt-cache show impacket-scripts
+```
+
+Useful fields include:
+
+```text
+Package
+Version
+Architecture
+Depends
+Installed-Size
+Description
+```
+
+The:
+
+```text
+Depends
+```
+
+field shows required dependencies.
+
+---
+
+# Listing Installed Packages
+
+```bash
+apt list --installed
+```
+
+Can be combined with previous filtering skills:
+
+```bash
+apt list --installed 2>/dev/null | grep "PACKAGE"
+```
+
+Example:
+
+```bash
+apt list --installed 2>/dev/null | grep "impacket-scripts"
+```
+
+Reminder:
+
+```text
+2>/dev/null
+→ discard STDERR
+
+|
+→ pipe STDOUT
+
+grep
+→ filter results
+```
+
+---
+
+# Simulating an Installation
+
+APT can preview an installation without changing the system:
+
+```bash
+sudo apt install PACKAGE --simulate
+```
+
+Example:
+
+```bash
+sudo apt install impacket-scripts --simulate
+```
+
+This is useful for checking what APT intends to do before making changes.
+
+---
+
+# APT vs DPKG
+
+One of the most important differences:
+
+```text
+APT
+→ high-level
+→ uses repositories
+→ handles dependencies
+
+DPKG
+→ low-level
+→ works directly with .deb packages
+→ dependency problems may require separate resolution
+```
+
+---
+
+# DPKG
+
+Install a `.deb` directly:
+
+```bash
+sudo dpkg -i package.deb
+```
+
+Inspect package status:
+
+```bash
+dpkg -l PACKAGE
+```
+
+Example package state:
+
+```text
+iU
+```
+
+Conceptually:
+
+```text
+i
+→ desired state = Install
+
+U
+→ current state = Unpacked
+```
+
+This can happen when files are unpacked but the package cannot finish configuration because a dependency is missing.
+
+---
+
+# Downloading Without Installing
+
+```bash
+apt download PACKAGE
+```
+
+Example:
+
+```bash
+apt download tree
+```
+
+Important distinction:
+
+```text
+apt download
+→ retrieve .deb only
+
+apt install
+→ retrieve + install + handle dependencies
+```
+
+---
+
+# Dependency Problems
+
+A direct `dpkg -i` installation can fail because required dependencies are missing or incompatible.
+
+Useful inspection command:
+
+```bash
+apt-cache policy PACKAGE
+```
+
+This can show:
+
+```text
+Installed
+Candidate
+Version table
+```
+
+Important:
+
+```text
+installed version
+≠
+repository candidate version
+```
+
+---
+
+# Fixing Broken Dependencies
+
+APT can attempt to repair package dependencies:
+
+```bash
+sudo apt --fix-broken install
+```
+
+A safe preview can be done with:
+
+```bash
+sudo apt --fix-broken install --simulate
+```
+
+Important lesson:
+
+```text
+dependency problem
+≠
+blindly force system-library upgrades
+```
+
+For critical libraries, forcing upgrades can damage the system.
+
+Better workflow:
+
+```text
+inspect error
+↓
+check versions
+↓
+simulate fixes
+↓
+read documentation
+↓
+use snapshot/restore if experimenting
+```
+
+---
+
+# Virtual Machine Snapshots
+
+Before risky package experiments, a VM snapshot provides a safe restore point.
+
+Conceptually:
+
+```text
+clean VM
+   ↓
+snapshot
+   ↓
+experiment
+   ↓
+problem
+   ↓
+restore
+```
+
+This is useful when testing package installation and dependency behavior.
+
+---
+
+# Git
+
+Git can be used to obtain source code or repositories.
+
+Example:
+
+```bash
+git clone URL DIRECTORY
+```
+
+Important:
+
+```text
+git clone
+→ copy repository contents
+
+installation
+→ may still require dependencies, setup, compilation, or configuration
+```
+
+---
+
+# .git Directory
+
+A cloned Git repository normally contains:
+
+```text
+.git
+```
+
+View hidden files with:
+
+```bash
+ls -la
+```
+
+The `.git` directory stores metadata such as:
+
+```text
+history
+branches
+commits
+remotes
+configuration
+```
+
+---
+
+# which
+
+Check where an executable is located:
+
+```bash
+which COMMAND
+```
+
+Example:
+
+```bash
+which evil-winrm
+```
+
+If it returns something like:
+
+```text
+/usr/bin/evil-winrm
+```
+
+the executable is installed and available through the system `PATH`.
+
+---
+
+# RubyGems
+
+Ruby packages are managed with:
+
+```text
+gem
+```
+
+Useful checks:
+
+```bash
+ruby --version
+gem --version
+```
+
+Tools written in Ruby may be installed using RubyGems.
+
+---
+
+# Important Differences
+
+```text
+APT
+→ Debian package management
+→ repositories
+→ dependency handling
+
+DPKG
+→ direct .deb installation
+→ lower-level
+
+Git
+→ retrieves repositories/source code
+→ does not automatically install
+
+Gem
+→ Ruby package manager
+
+Pip
+→ Python package installer
+
+Snap
+→ Snap package manager
+```
+
+---
+
+# Important Commands
+
+```bash
+sudo apt update
+
+apt-cache search PACKAGE
+apt-cache show PACKAGE
+
+apt list --installed
+
+sudo apt install PACKAGE
+sudo apt install PACKAGE --simulate
+
+apt download PACKAGE
+
+dpkg -l PACKAGE
+sudo dpkg -i PACKAGE.deb
+
+apt-cache policy PACKAGE
+
+sudo apt --fix-broken install --simulate
+
+git clone URL DIRECTORY
+
+which COMMAND
+
+ruby --version
+gem --version
+```
+
+---
+
+# Key Takeaway
+
+There are multiple ways to obtain software on Linux.
+
+The correct method depends on:
+
+```text
+distribution
+package format
+repository availability
+dependencies
+programming language
+project installation method
+```
+
+Important distinctions:
+
+```text
+downloading
+≠
+installing
+```
+
+and:
+
+```text
+installing a package
+≠
+automatically solving every dependency problem
+```
+
+APT is generally easier for Debian-based systems because it manages repositories and dependencies, while DPKG works more directly with `.deb` files.
+
+The safest approach when something breaks is:
+
+```text
+inspect
+↓
+understand
+↓
+simulate
+↓
+verify
+↓
+then modify
+```
+
 ---
 
 # Progress
@@ -4414,3 +5046,4 @@ Completed notes:
 - Section 13 - Regular Expressions
 - Section 14 - Permission Management
 - Section 15 - User Management
+- Section 16 - Package Management
