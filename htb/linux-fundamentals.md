@@ -5025,6 +5025,1022 @@ verify
 then modify
 ```
 
+# Section 17 - Service and Process Management
+
+This section focused on managing Linux services and processes, understanding process IDs and signals, and controlling foreground and background jobs.
+
+Main concepts:
+
+- Managing services with `systemctl`
+- Inspecting running processes
+- Understanding PID and PPID
+- Reviewing service logs with `journalctl`
+- Sending signals to processes
+- Managing foreground and background jobs
+- Finding and terminating processes
+- Understanding `;`, `&&`, and `|`
+
+---
+
+## Services and Daemons
+
+Linux services are programs that normally run in the background without requiring constant user interaction.
+
+They are also commonly called:
+
+```text
+daemons
+```
+
+Examples include:
+
+```text
+sshd
+systemd
+```
+
+There are two general types of services:
+
+```text
+System Services
+→ required by the operating system for normal operation
+
+User-Installed Services
+→ applications installed to provide additional functionality
+```
+
+Examples of user-installed services can include:
+
+- SSH servers
+- web servers
+- databases
+- other server applications
+
+---
+
+# systemd
+
+Most modern Linux distributions use:
+
+```text
+systemd
+```
+
+as their initialization and service management system.
+
+It is responsible for starting and managing many system services and processes.
+
+Processes have identifiers:
+
+```text
+PID
+→ Process ID
+
+PPID
+→ Parent Process ID
+```
+
+The PPID identifies the process that started another process.
+
+---
+
+# systemctl
+
+The main command used to interact with systemd services is:
+
+```bash
+systemctl
+```
+
+Check the status of a service:
+
+```bash
+systemctl status ssh
+```
+
+Important fields include:
+
+```text
+Loaded
+→ whether systemd knows about the service/unit
+
+Active
+→ current state of the service
+
+Main PID
+→ main process associated with the service
+```
+
+Start a service:
+
+```bash
+systemctl start SERVICE
+```
+
+Configure a service to start automatically during boot:
+
+```bash
+systemctl enable SERVICE
+```
+
+List service units:
+
+```bash
+systemctl list-units --type=service
+```
+
+---
+
+# Filtering Service Output
+
+A large list of services can be filtered instead of reading every line manually.
+
+Example:
+
+```bash
+systemctl list-units --type=service | grep -i ssh
+```
+
+This combines:
+
+```text
+systemctl
++
+pipe
++
+grep
+```
+
+Another example:
+
+```bash
+systemctl list-units --type=service | head
+```
+
+`head` does not search for anything.
+
+It simply displays the first part of the input it receives.
+
+Conceptually:
+
+```text
+systemctl
+→ generates a large list
+
+|
+→ sends the output forward
+
+head
+→ displays the first lines
+```
+
+---
+
+# Processes
+
+A process is a running instance of a program.
+
+Possible process states introduced in this section include:
+
+```text
+Running
+Waiting
+Stopped
+Zombie
+```
+
+Processes can be inspected using:
+
+```bash
+ps
+```
+
+Example:
+
+```bash
+ps -aux | grep ssh
+```
+
+Important fields include:
+
+```text
+USER
+→ user running the process
+
+PID
+→ process identifier
+
+COMMAND
+→ program/process being executed
+```
+
+Important distinction:
+
+```text
+systemctl
+→ works with systemd services/units
+
+ps
+→ displays running processes
+```
+
+The lines displayed by `ps` are processes, not systemd units.
+
+---
+
+# Multiple Related Processes
+
+Running:
+
+```bash
+ps -aux | grep ssh
+```
+
+may display several lines.
+
+These can include:
+
+```text
+main sshd daemon
+SSH session processes
+grep ssh itself
+```
+
+`grep ssh` may appear because its own command line also contains the word:
+
+```text
+ssh
+```
+
+The important concept is that several related processes can exist with different PIDs.
+
+---
+
+# journalctl
+
+Linux system and service logs can be inspected using:
+
+```bash
+journalctl
+```
+
+Example:
+
+```bash
+journalctl -u ssh.service --no-pager
+```
+
+Conceptually:
+
+```text
+systemctl status
+→ What is the current state?
+
+journalctl
+→ What happened?
+```
+
+The option:
+
+```text
+-u
+```
+
+selects a specific systemd unit.
+
+Example:
+
+```text
+-u ssh.service
+```
+
+means:
+
+```text
+show journal entries related to ssh.service
+```
+
+The option:
+
+```text
+--no-pager
+```
+
+prints the output directly instead of opening it inside a pager.
+
+Some system logs may be restricted depending on the current user's permissions.
+
+---
+
+# Process Signals
+
+Processes can be controlled by sending them:
+
+```text
+signals
+```
+
+Available signals can be viewed with:
+
+```bash
+kill -l
+```
+
+Important signals introduced in this section:
+
+```text
+2  → SIGINT
+9  → SIGKILL
+15 → SIGTERM
+20 → SIGTSTP
+```
+
+---
+
+# SIGINT
+
+```text
+SIGINT
+```
+
+is commonly sent using:
+
+```text
+Ctrl+C
+```
+
+It interrupts a foreground process.
+
+Example:
+
+```bash
+ping 127.0.0.1
+```
+
+Then:
+
+```text
+Ctrl+C
+```
+
+stops the process.
+
+---
+
+# SIGTERM
+
+```text
+SIGTERM
+```
+
+asks a process to terminate normally.
+
+Using:
+
+```bash
+kill PID
+```
+
+normally sends SIGTERM.
+
+This is generally preferable to immediately forcing a process to terminate.
+
+---
+
+# SIGKILL
+
+```text
+SIGKILL
+```
+
+is signal:
+
+```text
+9
+```
+
+Example:
+
+```bash
+kill -9 PID
+```
+
+It immediately terminates the process.
+
+It can be useful when a process is frozen or refuses to terminate normally.
+
+---
+
+# SIGTSTP and Ctrl+Z
+
+Pressing:
+
+```text
+Ctrl+Z
+```
+
+suspends the current foreground process.
+
+It does not terminate it.
+
+Example:
+
+```bash
+ping 127.0.0.1
+```
+
+Then:
+
+```text
+Ctrl+Z
+```
+
+may produce:
+
+```text
+[1]+ Stopped ping 127.0.0.1
+```
+
+Important distinction:
+
+```text
+Ctrl+C
+→ interrupt / terminate
+
+Ctrl+Z
+→ suspend
+```
+
+---
+
+# Jobs
+
+The command:
+
+```bash
+jobs
+```
+
+shows jobs associated with the current shell.
+
+Example:
+
+```text
+[1]+ Stopped ping 127.0.0.1
+```
+
+The number:
+
+```text
+[1]
+```
+
+is the:
+
+```text
+job ID
+```
+
+It is not the same as a PID.
+
+---
+
+# Job ID vs PID
+
+Example:
+
+```text
+[1] 6231
+```
+
+means:
+
+```text
+1
+→ job ID
+
+6231
+→ PID
+```
+
+A job ID is used by the shell to manage its jobs.
+
+A PID is the system-wide identifier of a process.
+
+Example using a job ID:
+
+```bash
+fg 1
+```
+
+Example using a PID:
+
+```bash
+kill 6231
+```
+
+---
+
+# Background Processes
+
+After suspending a process with:
+
+```text
+Ctrl+Z
+```
+
+it can be resumed in the background using:
+
+```bash
+bg
+```
+
+Workflow:
+
+```text
+process in foreground
+        ↓
+      Ctrl+Z
+        ↓
+process suspended
+        ↓
+        bg
+        ↓
+process running in background
+```
+
+---
+
+# Background Does Not Mean Silent
+
+A background process can continue writing output to the terminal.
+
+For example, running `ping` in the background can continue printing results even though the shell is available again.
+
+A cleaner example is:
+
+```bash
+ping 127.0.0.1 > /dev/null &
+```
+
+Breakdown:
+
+```text
+ping 127.0.0.1
+→ start ping
+
+> /dev/null
+→ discard standard output
+
+&
+→ run the command in the background
+```
+
+Important:
+
+```text
+background
+≠
+no output
+```
+
+---
+
+# Foreground Processes
+
+A background or suspended job can be returned to the foreground using:
+
+```bash
+fg JOB_ID
+```
+
+Example:
+
+```bash
+fg 1
+```
+
+Once the process is in the foreground:
+
+```text
+Ctrl+Z
+→ suspend it again
+
+Ctrl+C
+→ interrupt it
+```
+
+---
+
+# Starting Directly in the Background
+
+A command can also be launched directly in the background using:
+
+```text
+&
+```
+
+Example:
+
+```bash
+ping 127.0.0.1 > /dev/null &
+```
+
+The shell may display something similar to:
+
+```text
+[1] 6231
+```
+
+Meaning:
+
+```text
+[1]
+→ job ID
+
+6231
+→ PID
+```
+
+---
+
+# pgrep
+
+`pgrep` can find process IDs using a process name.
+
+Example:
+
+```bash
+pgrep ping
+```
+
+Possible output:
+
+```text
+6231
+```
+
+That PID can then be used with:
+
+```bash
+kill 6231
+```
+
+---
+
+# kill
+
+`kill` sends a signal to a process.
+
+Example:
+
+```bash
+kill 6231
+```
+
+normally sends:
+
+```text
+SIGTERM
+```
+
+to that PID.
+
+A shell job can also be referenced using:
+
+```bash
+kill %1
+```
+
+where:
+
+```text
+%1
+```
+
+means job 1 in the current shell.
+
+Forceful termination can be performed with:
+
+```bash
+kill -9 PID
+```
+
+which sends:
+
+```text
+SIGKILL
+```
+
+---
+
+# Background and Foreground Mental Model
+
+```text
+COMMAND
+   ↓
+foreground
+   ↓ Ctrl+Z
+ stopped
+   ↓ bg
+background
+   ↓ fg
+foreground
+```
+
+Or directly:
+
+```text
+COMMAND &
+   ↓
+background
+```
+
+---
+
+# Pipes
+
+A pipe:
+
+```text
+|
+```
+
+sends the standard output of one command to the standard input of another command.
+
+Example:
+
+```bash
+ps -aux | grep ssh
+```
+
+Conceptually:
+
+```text
+ps -aux
+→ generates process information
+
+|
+→ sends that output forward
+
+grep ssh
+→ examines the data and returns matching lines
+```
+
+The output of the first command becomes data for the second command.
+
+Several commands can also be chained:
+
+```bash
+ps -aux | grep ssh | head
+```
+
+Conceptually:
+
+```text
+ps -aux
+↓
+all processes
+↓
+grep ssh
+↓
+SSH-related lines
+↓
+head
+↓
+first results
+```
+
+Pipelines can therefore be thought of as:
+
+```text
+data processing chains
+```
+
+---
+
+# Executing Multiple Commands
+
+Three important operators were reinforced:
+
+```text
+;
+&&
+|
+```
+
+They have different purposes.
+
+---
+
+# Semicolon ;
+
+Example:
+
+```bash
+echo "1"; echo "2"; echo "3"
+```
+
+A semicolon means:
+
+```text
+execute the next command regardless of whether the previous command succeeds
+```
+
+Example:
+
+```bash
+echo "1"; ls NO_EXISTE; echo "3"
+```
+
+Conceptually:
+
+```text
+echo "1"
+→ succeeds
+
+ls NO_EXISTE
+→ fails
+
+echo "3"
+→ still executes
+```
+
+Mental model:
+
+```text
+;
+→ continue regardless of previous result
+```
+
+---
+
+# Double AND &&
+
+Example:
+
+```bash
+echo "1" && ls NO_EXISTE && echo "3"
+```
+
+`&&` means:
+
+```text
+execute the next command only if the previous command succeeds
+```
+
+Conceptually:
+
+```text
+echo "1"
+→ success
+↓
+ls NO_EXISTE
+→ failure
+↓
+echo "3"
+→ does not execute
+```
+
+Mental model:
+
+```text
+&&
+→ continue only after success
+```
+
+---
+
+# Pipe |
+
+A pipe is different from both `;` and `&&`.
+
+Example:
+
+```bash
+systemctl list-units --type=service | grep ssh
+```
+
+Conceptually:
+
+```text
+command 1 produces data
+        ↓
+        |
+        ↓
+command 2 receives that data
+```
+
+Summary:
+
+```text
+;
+→ execute another command regardless of success
+
+&&
+→ execute another command only after success
+
+|
+→ send output from one command into another command
+```
+
+---
+
+# Important Commands
+
+```bash
+systemctl status ssh
+
+systemctl start SERVICE
+
+systemctl enable SERVICE
+
+systemctl list-units --type=service
+
+ps -aux | grep ssh
+
+journalctl -u ssh.service --no-pager
+
+kill -l
+
+jobs
+
+bg
+
+fg 1
+
+COMMAND &
+
+pgrep PROCESS
+
+kill PID
+
+kill -9 PID
+
+kill %JOB_ID
+```
+
+---
+
+# Key Takeaway
+
+Service and process management connects several important Linux concepts:
+
+```text
+systemd
++
+services
++
+processes
++
+PIDs
++
+signals
++
+jobs
++
+logs
++
+command pipelines
+```
+
+The main mental models are:
+
+```text
+systemctl
+→ manage and inspect systemd services
+
+ps
+→ inspect running processes
+
+journalctl
+→ inspect service/system history
+
+PID
+→ identify a process
+
+signals
+→ control process behavior
+
+jobs / bg / fg
+→ manage processes from the current shell
+```
+
+And for command chaining:
+
+```text
+A ; B
+→ run A, then B regardless
+
+A && B
+→ run B only if A succeeds
+
+A | B
+→ send A's output into B
+```
+
+These concepts are especially useful in cybersecurity for inspecting running services, identifying suspicious processes, reviewing logs, understanding process relationships, and controlling processes during system investigation.
+
 ---
 
 # Progress
@@ -5047,3 +6063,4 @@ Completed notes:
 - Section 14 - Permission Management
 - Section 15 - User Management
 - Section 16 - Package Management
+- Section 17 - Service and Process Management
