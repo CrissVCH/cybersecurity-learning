@@ -6041,6 +6041,798 @@ A | B
 
 These concepts are especially useful in cybersecurity for inspecting running services, identifying suspicious processes, reviewing logs, understanding process relationships, and controlling processes during system investigation.
 
+# Section 18 - Task Scheduling
+
+This section focused on scheduling automated tasks in Linux using systemd timers and Cron.
+
+Task scheduling allows Linux to execute commands or scripts automatically at specific times, intervals, or system events.
+
+Common examples:
+
+- Software updates
+- Automatic backups
+- System maintenance
+- Log rotation
+- Database maintenance
+- Recurring script execution
+
+From a cybersecurity perspective, scheduled tasks are also important because attackers can abuse them to establish persistence.
+
+---
+
+# Main Scheduling Methods
+
+Linux provides different methods for scheduling tasks.
+
+The two main approaches introduced in this section were:
+
+```text
+systemd timers
+Cron
+```
+
+Both automate task execution, but their configurations are different.
+
+Main mental model:
+
+```text
+SYSTEMD
+
+.timer
+→ WHEN a task runs
+
+.service
+→ WHAT gets executed
+```
+
+```text
+CRON
+
+schedule + command
+→ WHEN + WHAT
+```
+
+---
+
+# systemd Timers
+
+Systemd uses `.timer` units to schedule the activation of other units, usually `.service` units.
+
+Example:
+
+```text
+backup.timer
+      ↓
+activates
+      ↓
+backup.service
+      ↓
+executes the backup
+```
+
+Important distinction:
+
+```text
+.timer
+→ defines the schedule
+
+.service
+→ defines the action
+```
+
+A `.service` does NOT require a timer.
+
+Services can also be started manually, during boot, or through other system events.
+
+A timer simply provides time-based activation.
+
+---
+
+# Creating a systemd Timer
+
+Example timer configuration:
+
+```ini
+[Unit]
+Description=My Timer
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=1hour
+
+[Install]
+WantedBy=timers.target
+```
+
+Important properties:
+
+```text
+OnBootSec=3min
+→ activate three minutes after boot
+
+OnUnitActiveSec=1hour
+→ activate one hour after the associated unit was last activated
+```
+
+Another scheduling property is:
+
+```text
+OnCalendar=
+```
+
+This allows calendar-based schedules.
+
+Example:
+
+```ini
+OnCalendar=daily
+```
+
+This schedules an activation once per day.
+
+---
+
+# Creating a systemd Service
+
+The service defines the command or program to execute.
+
+Example:
+
+```ini
+[Unit]
+Description=My Service
+
+[Service]
+ExecStart=/full/path/to/script.sh
+
+[Install]
+WantedBy=multi-user.target
+```
+
+The most important property is:
+
+```text
+ExecStart=
+→ defines WHAT gets executed
+```
+
+After modifying or creating systemd unit files:
+
+```bash
+sudo systemctl daemon-reload
+```
+
+This tells systemd to reread its unit configuration.
+
+Start a timer:
+
+```bash
+sudo systemctl start mytimer.timer
+```
+
+Enable it to start automatically:
+
+```bash
+sudo systemctl enable mytimer.timer
+```
+
+Important distinction:
+
+```text
+start
+→ activate now
+
+enable
+→ configure automatic activation at boot
+```
+
+---
+
+# Inspecting systemd Timers
+
+List active timers:
+
+```bash
+systemctl list-timers
+```
+
+List timers including inactive ones:
+
+```bash
+systemctl list-timers --all
+```
+
+Important output columns:
+
+```text
+NEXT
+→ next scheduled activation
+
+LEFT
+→ time remaining
+
+LAST
+→ previous activation
+
+PASSED
+→ time since previous activation
+
+UNIT
+→ timer unit
+
+ACTIVATES
+→ associated unit/service
+```
+
+During practice, I inspected existing timers such as:
+
+```text
+phpsessionclean.timer
+apt-daily.timer
+logrotate.timer
+fstrim.timer
+```
+
+These timers activate corresponding services to perform maintenance tasks.
+
+---
+
+# Inspecting a Timer and Its Service
+
+Example:
+
+```bash
+systemctl status phpsessionclean.timer
+```
+
+Important fields:
+
+```text
+Loaded
+Active
+Trigger
+Triggers
+```
+
+The timer showed:
+
+```text
+active (waiting)
+```
+
+This means it was active and waiting for its next scheduled activation.
+
+To inspect its configuration:
+
+```bash
+systemctl cat phpsessionclean.timer
+```
+
+The timer configuration included properties such as:
+
+```ini
+[Timer]
+OnCalendar=...
+Persistent=true
+```
+
+To inspect the service activated by that timer:
+
+```bash
+systemctl cat phpsessionclean.service
+```
+
+The service contained properties such as:
+
+```ini
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/php/sessionclean
+ProtectHome=true
+ProtectSystem=true
+PrivateTmp=true
+```
+
+Important concepts:
+
+```text
+Type=
+→ defines the service's execution behavior
+
+ExecStart=
+→ defines the executable or command
+```
+
+This reinforced the relationship:
+
+```text
+.timer
+→ scheduling
+
+.service
+→ execution
+```
+
+---
+
+# Cron
+
+Cron is another Linux task scheduling system.
+
+Unlike systemd timers, Cron commonly combines scheduling information and the command into a single entry.
+
+Basic structure:
+
+```text
+minute hour day-of-month month day-of-week command
+```
+
+The five scheduling fields are:
+
+```text
+Minute       → 0-59
+Hour         → 0-23
+Day of month → 1-31
+Month        → 1-12
+Day of week  → 0-7
+```
+
+In the weekday field, Sunday can be represented by `0` or `7`.
+
+The wildcard:
+
+```text
+*
+```
+
+means any value in that field.
+
+---
+
+# Cron Examples
+
+### Every day at midnight
+
+```cron
+0 0 * * * /path/to/script.sh
+```
+
+Meaning:
+
+```text
+Minute → 0
+Hour   → 0
+Day    → any
+Month  → any
+Weekday→ any
+```
+
+### Every six hours
+
+```cron
+0 */6 * * * /path/to/update.sh
+```
+
+Meaning:
+
+```text
+0
+→ minute zero
+
+*/6
+→ every six hours
+
+* * *
+→ every day, month and weekday
+```
+
+### First day of every month
+
+```cron
+0 0 1 * * /path/to/backup.sh
+```
+
+This executes at midnight on the first day of each month.
+
+### Every Sunday at midnight
+
+```cron
+0 0 * * 0 /path/to/script.sh
+```
+
+Sunday may also be written as `7` in the last scheduling field.
+
+---
+
+# User Crontab
+
+To display the current user's scheduled Cron jobs:
+
+```bash
+crontab -l
+```
+
+During practice, the command returned:
+
+```text
+no crontab for USER
+```
+
+This means the current user does not have a personal crontab configured.
+
+Important:
+
+```text
+No personal crontab
+≠
+No scheduled tasks on the system
+```
+
+System-wide Cron tasks can still exist.
+
+---
+
+# System-Wide Cron
+
+Common system Cron locations include:
+
+```text
+/etc/crontab
+/etc/cron.d/
+/etc/cron.hourly/
+/etc/cron.daily/
+/etc/cron.weekly/
+/etc/cron.monthly/
+```
+
+Inspect Cron files and directories:
+
+```bash
+ls -l /etc/cron*
+```
+
+Read the main system crontab:
+
+```bash
+cat /etc/crontab
+```
+
+Important difference:
+
+A user crontab typically contains:
+
+```text
+minute hour day month weekday command
+```
+
+The system-wide `/etc/crontab` includes an additional username field:
+
+```text
+minute hour day month weekday USER command
+```
+
+Example:
+
+```cron
+17 * * * * root /path/to/script.sh
+```
+
+Meaning:
+
+```text
+17
+→ minute 17
+
+* * * *
+→ every hour, day, month and weekday
+
+root
+→ execute the command as root
+```
+
+This distinction is important when investigating scheduled tasks and their execution privileges.
+
+---
+
+# systemd vs Cron
+
+| Feature | systemd Timer | Cron |
+|---|---|---|
+| Scheduling | `.timer` unit | Crontab expression |
+| Execution | Usually a `.service` unit | Command in crontab |
+| Configuration | Separate units | Usually one entry |
+| Inspection | `systemctl` | `crontab` / Cron files |
+| Structure | Modular | Compact |
+
+Mental model:
+
+```text
+SYSTEMD
+
+.timer
+   ↓
+WHEN?
+   ↓
+.service
+   ↓
+WHAT?
+   ↓
+ExecStart
+```
+
+```text
+CRON
+
+schedule + command
+    ↓
+ WHEN      WHAT
+```
+
+Neither method is inherently better for every situation.
+
+They provide different approaches to task automation.
+
+---
+
+# Investigating dconf.service
+
+The HTB exercise required investigating the `Type` property of an existing systemd service.
+
+Initially, I tried:
+
+```bash
+systemctl cat dconf.service
+```
+
+The command returned:
+
+```text
+No files found for dconf.service.
+```
+
+I also inspected its properties using:
+
+```bash
+systemctl show dconf.service -p Type
+```
+
+However, the expected information was not returned.
+
+The important lesson was that a failed `systemctl` lookup does not necessarily mean the unit file does not exist.
+
+---
+
+# System Units vs User Units
+
+Systemd distinguishes between:
+
+```text
+System units
+→ managed at the system level
+
+User units
+→ managed within a user's systemd context
+```
+
+Common locations include:
+
+```text
+/usr/lib/systemd/system/
+→ system units
+
+/usr/lib/systemd/user/
+→ user units
+```
+
+To locate the missing service file, I used:
+
+```bash
+find /usr/lib/systemd /etc/systemd -name "dconf.service" 2>/dev/null
+```
+
+The file was located at:
+
+```text
+/usr/lib/systemd/user/dconf.service
+```
+
+This explained why the normal system-level lookup did not find it.
+
+I also attempted:
+
+```bash
+systemctl --user list-unit-files | grep -i dconf
+```
+
+However, the HTB environment did not provide an accessible user systemd manager.
+
+Instead, I inspected the file directly.
+
+---
+
+# Reading a Unit File Directly
+
+Once the file path was identified:
+
+```bash
+cat /usr/lib/systemd/user/dconf.service
+```
+
+This allowed me to inspect the configuration without relying on the systemd user manager.
+
+Important distinction:
+
+```text
+systemd
+→ initialization and service manager
+
+systemctl
+→ interacts with systemd
+
+cat
+→ reads file contents directly
+```
+
+To identify a service's type, look for:
+
+```ini
+[Service]
+Type=...
+```
+
+This investigation demonstrated how to troubleshoot an unexpected result by using basic Linux tools.
+
+---
+
+# Troubleshooting Workflow
+
+```text
+systemctl cat UNIT
+        ↓
+Unit not found
+        ↓
+Check system vs user units
+        ↓
+Search the filesystem
+        ↓
+find ... -name "UNIT"
+        ↓
+Locate the full path
+        ↓
+cat FULL_PATH
+        ↓
+Inspect configuration
+```
+
+Important lesson:
+
+Do not create or modify a missing service simply because a command cannot locate it.
+
+First investigate whether the unit already exists in another location or context.
+
+---
+
+# Important Commands
+
+### systemd
+
+```bash
+systemctl list-timers
+
+systemctl list-timers --all
+
+systemctl status TIMER.timer
+
+systemctl cat TIMER.timer
+
+systemctl cat SERVICE.service
+
+sudo systemctl daemon-reload
+
+sudo systemctl start TIMER.timer
+
+sudo systemctl enable TIMER.timer
+```
+
+### Cron
+
+```bash
+crontab -l
+
+ls -l /etc/cron*
+
+cat /etc/crontab
+```
+
+### Investigation
+
+```bash
+systemctl show SERVICE.service -p Type
+
+systemctl --user list-unit-files
+
+find /usr/lib/systemd /etc/systemd -name "UNIT" 2>/dev/null
+
+cat /full/path/to/unit.service
+```
+
+---
+
+# Cybersecurity Relevance
+
+Scheduled tasks are important when investigating:
+
+- Persistence mechanisms
+- Suspicious recurring processes
+- Unauthorized script execution
+- System misconfigurations
+- Scheduled commands running with elevated privileges
+- Unexpected maintenance tasks
+- Changes to systemd services and Cron configuration
+
+An attacker could abuse Cron or systemd timers to execute malicious code automatically.
+
+Security investigations may therefore include reviewing:
+
+```text
+systemd timers
++
+systemd services
++
+user crontabs
++
+system Cron configuration
++
+executed commands
++
+file ownership and permissions
+```
+
+---
+
+# Key Takeaway
+
+Linux task scheduling can be managed through:
+
+```text
+systemd timers
++
+Cron
+```
+
+The most important concepts are:
+
+- A `.timer` determines when a unit is activated.
+- A `.service` determines what gets executed.
+- A service can operate without a timer.
+- `systemctl list-timers` displays systemd timers.
+- `systemctl cat` displays unit configurations.
+- `ExecStart` identifies the executable or command.
+- Cron combines scheduling fields and commands.
+- `crontab -l` only displays the current user's personal crontab.
+- System-wide Cron tasks exist separately.
+- Systemd supports both system and user units.
+- `find` and `cat` can help investigate unit files when `systemctl` fails.
+- Scheduled tasks are important for both system administration and cybersecurity investigations.
+
+This section reinforced previous Linux skills such as:
+
+```text
+systemctl
++
+find
++
+cat
++
+file paths
++
+permissions
++
+redirections
+```
+
+Understanding how Linux schedules and executes tasks is useful for system administration, troubleshooting, and identifying possible persistence mechanisms during security investigations.
+
 ---
 
 # Progress
@@ -6064,3 +6856,4 @@ Completed notes:
 - Section 15 - User Management
 - Section 16 - Package Management
 - Section 17 - Service and Process Management
+- Section 18 - Task Scheduling
