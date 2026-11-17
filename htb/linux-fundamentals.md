@@ -6833,6 +6833,120 @@ redirections
 
 Understanding how Linux schedules and executes tasks is useful for system administration, troubleshooting, and identifying possible persistence mechanisms during security investigations.
 
+## Section 19 – Network Services
+
+**Status:** Completed
+**HTB module:** Linux Fundamentals (19/30)
+
+### Overview
+
+Network services enable remote administration, file sharing, web access, and secure connectivity. Understanding their normal behavior helps identify exposed services, weak configurations, excessive permissions, and insecure communication.
+
+| Service | Purpose | Security relevance |
+|---|---|---|
+| SSH / OpenSSH | Encrypted remote shell and administration | Authentication, access controls, exposed remote access |
+| NFS | Share and mount directories across a network | Export permissions and remote root privileges |
+| Web servers | Serve websites and files over HTTP/HTTPS | Directory exposure, configuration, and file transfer |
+| VPN / OpenVPN | Provide an encrypted tunnel to another network | Secure remote access and lab connectivity |
+
+### SSH and OpenSSH
+
+- **SSH (Secure Shell):** encrypted remote access, commands, tunneling, and file transfer.
+- **`ssh`:** the client that starts a connection.
+- **`sshd`:** the server daemon that receives SSH connections.
+- **Server configuration:** `/etc/ssh/sshd_config`.
+- **`systemctl`** checks the service; **`ps`** shows processes.
+
+```bash
+sudo apt install openssh-server -y  # Example installation
+systemctl status ssh               # Checked: active (running)
+ps -aux | grep ssh                 # Inspect SSH-related processes
+head -n 20 /etc/ssh/sshd_config   # Read the first 20 configuration lines
+```
+
+**Command review:** `head -n 20 FILE` prints the first 20 lines. This is a more direct alternative to `cat FILE | head -n 20`.
+
+### NFS (Network File System)
+
+NFS makes a directory stored on a remote host accessible through a local mount point.
+
+- **Export configuration:** `/etc/exports`.
+- **`rw` / `ro`:** read-write / read-only access.
+- **`root_squash`:** reduces privileges of remote root users.
+- **`no_root_squash`:** disables that restriction; can create privilege-escalation risk.
+- **`sync` / `async`:** synchronous / asynchronous write handling.
+
+```bash
+cat /etc/exports                    # Inspect NFS exports if present
+systemctl status nfs-kernel-server # Check NFS server service if installed
+mount SERVER:/remote/path /local/path  # Example NFS mount syntax
+```
+
+**HTB observation:** `/etc/exports` was missing and `nfs-kernel-server.service` was not found on the target. A service discussed in a lesson is not necessarily installed on every Linux system. Avoid making unnecessary changes to the lab environment.
+
+### Web servers
+
+Web servers respond to HTTP requests and serve files or applications. Examples discussed: **Apache, Nginx, Lighttpd, and Caddy**.
+
+**Apache:**
+
+- Installation example: `sudo apt install apache2 -y`.
+- Main configuration: `/etc/apache2/apache2.conf`.
+- Common document root: `/var/www/html`.
+- Directory settings can include `Indexes`, `FollowSymLinks`, `AllowOverride`, and `Require all granted`.
+- `.htaccess` can provide directory-level configuration when allowed.
+- Modules mentioned: `mod_rewrite`, `mod_security`, and `mod_ssl`.
+
+**Quick Python web server:**
+
+```bash
+python3 -m http.server                          # Serve current directory (port 8000)
+python3 -m http.server --directory /path/to/files # Serve a specific directory
+python3 -m http.server 8080                     # Use a different port
+```
+
+A temporary HTTP server is useful for exchanging files in authorized labs. HTTP alone does **not** encrypt the transfer; be careful about what files and networks you expose.
+
+- **`curl` / `wget`:** request or download files from web servers.
+
+### VPN and OpenVPN
+
+- **VPN (Virtual Private Network):** creates an encrypted connection to a remote network.
+- Used for remote access to private business resources and for access to authorized testing labs.
+- **OpenVPN:** an open-source VPN implementation.
+- **Server configuration introduced:** `/etc/openvpn/server.conf`.
+- **`.ovpn`:** common OpenVPN client-configuration file extension.
+
+```bash
+sudo apt install openvpn -y           # Example installation
+sudo openvpn --config internal.ovpn  # Example client connection
+```
+
+### Security takeaways
+
+1. Secure remote access requires correctly configured SSH authentication and access controls.
+2. NFS export permissions matter: `no_root_squash` can expose powerful privileges.
+3. Web servers can accidentally expose files, directories, or unsafe configurations.
+4. A temporary Python HTTP server is convenient in a lab but should not expose sensitive files.
+5. VPNs allow secure connectivity to otherwise private networks.
+6. Knowing normal service behavior helps both system administration and security investigations.
+
+### Key commands and files to remember
+
+| Command or path | Purpose |
+|---|---|
+| `systemctl status ssh` | Check SSH service |
+| `ps -aux | grep ssh` | Find SSH-related processes |
+| `/etc/ssh/sshd_config` | OpenSSH server configuration |
+| `head -n 20 FILE` | Show first 20 lines |
+| `/etc/exports` | NFS export configuration |
+| `mount SERVER:/remote/path /local/path` | Mount an NFS share |
+| `/etc/apache2/apache2.conf` | Apache configuration |
+| `python3 -m http.server` | Start a temporary HTTP server |
+| `/etc/openvpn/server.conf` | OpenVPN server configuration |
+| `sudo openvpn --config FILE.ovpn` | Connect with an OpenVPN client profile |
+
+
 ---
 
 # Progress
@@ -6857,3 +6971,4 @@ Completed notes:
 - Section 16 - Package Management
 - Section 17 - Service and Process Management
 - Section 18 - Task Scheduling
+- Section 19 - Network Services
