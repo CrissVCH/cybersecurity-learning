@@ -1,8 +1,10 @@
 # HTB Academy — Incident Handling Process
 
-> **Status:** In progress · **Completed:** Section 1 of 11 — *Incident Handling*  
-> **Learning path:** Linux Fundamentals → Incident Handling Process → Security Monitoring & SIEM Fundamentals  
-> **Last update:** 2026-11-16
+> **Status:** In progress · **Completed:** Sections 1–2 of 11 — *Incident Handling* and *Cyber Kill Chain*
+>
+> **Learning path:** Linux Fundamentals → Incident Handling Process → Security Monitoring & SIEM Fundamentals
+>
+> **Last update:** 2026-11-20
 
 ## Learning goals
 
@@ -111,14 +113,150 @@ Incident handling explains **what defenders must do** when a threat appears. SIE
 
 ---
 
+## Section 2/11 — Cyber Kill Chain
+
+### 1. The seven stages of the Cyber Kill Chain
+
+The **Cyber Kill Chain** is a high-level model for understanding how an intrusion develops. Identifying the adversary's current stage can help defenders interrupt the attack before further damage.
+
+| Stage | Meaning | Example |
+| --- | --- | --- |
+| **1. Reconnaissance** | Gather information about a target. | Public research or scanning exposed services. |
+| **2. Weaponization** | Prepare the malicious capability or payload. | Build an exploit and malicious payload. |
+| **3. Delivery** | Get malicious content to the intended target. | Phishing email or malicious link. |
+| **4. Exploitation** | Trigger a vulnerability or malicious execution. | Victim opens a malicious attachment. |
+| **5. Installation** | Install malicious software or establish access. | Dropper, backdoor, or rootkit. |
+| **6. Command and Control (C2)** | Maintain communication with compromised systems. | Infected host checks in with attacker infrastructure. |
+| **7. Actions on Objectives** | Carry out the attacker's intended goal. | Data theft, espionage, or disruption. |
+
+**Passive reconnaissance** uses publicly available information (websites, job ads, social profiles). **Active reconnaissance** interacts directly with the target (port scans or service identification).
+
+The stages are a helpful model, **not a rigid sequence**: real attacks can skip stages, repeat activities, or pursue multiple objectives.
+
+### 2. MITRE ATT&CK: Tactics, Techniques, and Sub-techniques
+
+[MITRE ATT&CK](https://attack.mitre.org/) describes observed adversary behavior at a more detailed level than the Cyber Kill Chain.
+
+| Concept | Core question | Example |
+| --- | --- | --- |
+| **Tactic** | *Why / for what objective?* | Credential Access or Lateral Movement |
+| **Technique** | *How is the objective achieved?* | T1003 — OS Credential Dumping |
+| **Sub-technique** | *Which more specific method?* | T1003.001 — LSASS Memory |
+| **Procedure** | *What exactly did this attacker do?* | The actual commands and sequence seen in an incident |
+
+**TTPs** stands for *Tactics, Techniques, and Procedures*: a useful way to describe attacker behavior beyond isolated indicators.
+
+Other examples from the module:
+
+- **T1105 — Ingress Tool Transfer:** bringing tools or payloads into an environment, sometimes through utilities such as `curl` or `wget`.
+- **T1021 — Remote Services:** use of remote access services in an attack.
+- **T1021.002 — SMB/Windows Admin Shares:** a more specific remote-services sub-technique.
+- **T1059.001 — PowerShell:** a sub-technique of command and scripting interpreter.
+
+### 3. Pyramid of Pain
+
+The Pyramid of Pain illustrates how much disruption different kinds of detection can cause for an adversary, from generally easier to change to more difficult:
+
+1. Hash values.
+2. IP addresses.
+3. Domain names.
+4. Network and host artifacts.
+5. Tools.
+6. TTPs (attacker behaviors and methods).
+
+**IOC (Indicator of Compromise)** examples: a suspicious hash, IP address, domain, or filename. **TTP** examples: credential dumping, lateral movement over RDP, or persistence using Windows services.
+
+**Takeaway:** IOC detections are valuable, but behavior-focused detection can remain useful when attackers rotate hashes, addresses, and domains.
+
+### 4. Connecting an incident to ATT&CK
+
+The module showed how one incident can involve several ATT&CK techniques:
+
+| Observed behavior | ATT&CK example |
+| --- | --- |
+| Exploitation of a public-facing application | T1190 |
+| PowerShell execution | T1059.001 |
+| Persistence through a Windows service | T1543.003 |
+| LSASS memory credential dumping | T1003.001 |
+| Lateral movement through RDP | T1021.001 |
+| Data encryption for impact | T1486 |
+
+A **whole-incident ATT&CK mapping** summarizes multiple behaviors. An **individual TheHive alert** may describe only one part of that incident or have no ATT&CK mapping at all.
+
+### 5. Practical lab — Investigating alerts in TheHive
+
+**TheHive** helps SOC analysts organize alerts, observables, investigation tasks, and cases. In HTB, the web application used the format:
+
+```text
+http://TARGET_IP:9000
+```
+
+`TARGET_IP` is a **placeholder**: replace it with the IP assigned to the running HTB lab. TheHive's application credentials are distinct from SSH credentials unless the lab explicitly states otherwise.
+
+**Connectivity troubleshooting used in the lab:**
+
+```bash
+ping -c 3 TARGET_IP
+nc -vz TARGET_IP 9000
+curl -v http://TARGET_IP:9000
+```
+
+| Test | What it helps answer | Observed result |
+| --- | --- | --- |
+| `ping -c 3` | Can the target respond to ICMP? | Received responses. |
+| `nc -vz IP 9000` | Is TCP port 9000 accepting connections? | Connection succeeded. |
+| `curl -v http://IP:9000` | Is the HTTP application responding? | HTTP 200 and TheHive HTML. |
+
+**Important distinction:** `ping` can be blocked by ICMP rules even when a service is healthy, and an open TCP port does not prove the application is functioning correctly.
+
+In the lab, the host and HTTP service responded, but Firefox initially failed to load TheHive due to a **browser/proxy (FoxyProxy) configuration issue**. Checking each network layer helped isolate a local browser problem from a server problem.
+
+### 6. Finding an alert and interpreting its fields
+
+The exercise involved locating an alert using its **Reference** (example from the lab: `67c202`) and inspecting its detailed fields.
+
+| Field | Meaning |
+| --- | --- |
+| **Reference** | Identifier used to find the specific TheHive alert. |
+| **`rule.id`** | Detection rule identifier from the source tool (such as Wazuh). |
+| **`rule.mitre.id`** | MITRE ATT&CK technique/sub-technique ID associated with that detection. |
+| **`rule.mitre.tactic`** | Associated ATT&CK tactic, when supplied. |
+| **`rule.level`** | Rule severity/level from the source detection system. |
+
+The lab alert related to **LSASS access and possible credential dumping**, connecting the hands-on evidence with the **Credential Access** tactic and ATT&CK mapping.
+
+**Practical lesson:** Searching for every MITRE technique ID using `Ctrl+F` on the alerts list did not work reliably. The list may not show hidden alert details, and some alerts have no TTP mapping.
+
+Better workflow:
+
+1. Locate the exact alert using its Reference.
+2. Open the alert details and read the event description.
+3. Inspect `rule.mitre.id` and `rule.mitre.tactic` if available.
+4. Compare the evidence with the overall incident timeline.
+5. Decide whether it requires escalation, further investigation, or case creation.
+
+### 7. Key takeaways for SOC and SIEM
+
+- Cyber Kill Chain gives a broad view of an attack's progression; ATT&CK gives more granular behavior mappings.
+- A tactic is an adversary objective; a technique is a method; a sub-technique is a more specific method.
+- Behavioral evidence can be more durable than a single hash, IP, or domain indicator.
+- A case or incident may contain many alerts, with different ATT&CK mappings.
+- Alert identifiers and MITRE IDs serve different purposes.
+- `ping`, `nc`, and `curl` answer different troubleshooting questions.
+- An alert is **evidence to investigate**, not automatic proof of malicious activity.
+
+**My takeaway:** Understanding attacker behavior helps a SOC analyst make sense of SIEM alerts and respond to the broader incident instead of treating each alert in isolation.
+
+---
+
 ## Progress log
 
 - [x] **1/11 — Incident Handling:** Definition, scope, lifecycle, real-world cases, and introduction to the scenario.
-- [ ] **2–11:** Continue the module. Add notes after completing each section rather than marking material as learned prematurely.
+- [x] **2/11 — Cyber Kill Chain:** Attack stages, MITRE ATT&CK, Pyramid of Pain, TheHive alert analysis, and network troubleshooting.
+- [ ] **3–11:** Continue the module. Add notes after completing each section rather than marking material as learned prematurely.
 
 ## Upcoming topics / questions
 
-- How do the Cyber Kill Chain and MITRE ATT&CK help organize an investigation?
 - How should incidents be categorized and prioritized?
 - What evidence should be collected and preserved during an investigation?
 - Which SIEM alerts and log sources are useful for detecting the scenario's activities?
