@@ -207,6 +207,14 @@ curl -v http://TARGET_IP:9000
 | `nc -vz IP 9000` | Is TCP port 9000 accepting connections? | Connection succeeded. |
 | `curl -v http://IP:9000` | Is the HTTP application responding? | HTTP 200 and TheHive HTML. |
 
+![Ping and curl connectivity checks in the HTB lab](images/incident-handling/thehive-ping-curl.png)
+
+*Figure 1. ICMP responses and a successful HTTP 200 response from TheHive on TCP port 9000.*
+
+![Netcat confirming access to TCP port 9000](images/incident-handling/thehive-tcp-port-check.png)
+
+*Figure 2. Netcat verifies that the TheHive service port accepts TCP connections.*
+
 **Important distinction:** `ping` can be blocked by ICMP rules even when a service is healthy, and an open TCP port does not prove the application is functioning correctly.
 
 In the lab, the host and HTTP service responded, but Firefox initially failed to load TheHive due to a **browser/proxy (FoxyProxy) configuration issue**. Checking each network layer helped isolate a local browser problem from a server problem.
@@ -214,6 +222,10 @@ In the lab, the host and HTTP service responded, but Firefox initially failed to
 ### 6. Finding an alert and interpreting its fields
 
 The exercise involved locating an alert using its **Reference** (example from the lab: `67c202`) and inspecting its detailed fields.
+
+![TheHive alert overview during investigation](images/incident-handling/thehive-alerts-overview.png)
+
+*Figure 3. TheHive alert queue. A browser text search for an ATT&CK ID did not find the ID in the visible alert list.*
 
 | Field | Meaning |
 | --- | --- |
@@ -224,6 +236,10 @@ The exercise involved locating an alert using its **Reference** (example from th
 | **`rule.level`** | Rule severity/level from the source detection system. |
 
 The lab alert related to **LSASS access and possible credential dumping**, connecting the hands-on evidence with the **Credential Access** tactic and ATT&CK mapping.
+
+![LSASS alert details and MITRE ATT&CK mapping in TheHive](images/incident-handling/thehive-lsass-mitre.png)
+
+*Figure 4. LSASS-related alert showing the distinct detection rule ID and MITRE ATT&CK sub-technique `T1003.001` (Credential Access).*
 
 **Practical lesson:** Searching for every MITRE technique ID using `Ctrl+F` on the alerts list did not work reliably. The list may not show hidden alert details, and some alerts have no TTP mapping.
 
