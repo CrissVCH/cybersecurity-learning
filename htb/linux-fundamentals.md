@@ -2,6 +2,32 @@
 
 Notes and commands from the Hack The Box Linux Fundamentals module.
 
+
+<!-- BEGIN LINUX PORTFOLIO INTRO -->
+<p align="center">
+  <img alt="Hack The Box Academy" src="https://img.shields.io/badge/Hack%20The%20Box-Academy-9FEF00?style=for-the-badge&amp;logo=hackthebox&amp;logoColor=111927" />
+  <img alt="Learning progress" src="https://img.shields.io/badge/Linux%20Fundamentals-Sections%201%E2%80%9319-2188FF?style=for-the-badge" />
+  <img alt="Evidence collection" src="https://img.shields.io/badge/Lab%20Archive-112%20Screenshots-7C3AED?style=for-the-badge" />
+</p>
+
+> [!IMPORTANT]
+> **Personal learning portfolio + study notes.** This page combines explanations, commands, guided exercises, mistakes, and screenshots from Linux Fundamentals. A screenshot is not automatically evidence of successful execution: each featured image is labeled **Command demonstrated**, **Guided study**, **Troubleshooting / error**, or **Reference screenshot**.
+
+| 🎯 Scope | 🔎 Evidence | 🧭 Next step |
+|---|---|---|
+| HTB Academy Linux Fundamentals · Sections **1–19/30** documented | **112** original screenshots retained; selected images explained alongside relevant sections | Continue with **Section 20** after reviewing Sections 1–19 |
+
+### 🗺️ Explore the portfolio
+
+- **Foundation:** [Linux architecture](#section-1---linux-structure), [shell](#section-3---introduction-to-shell), [navigation](#section-7---navigation), and [files](#section-8---working-with-files-and-directories).
+- **Hands-on commands:** [Vim](#section-9---editing-files), [redirection](#section-11---file-descriptors-and-redirections), [filtering](#section-12---filter-contents), [regex](#section-13---regular-expressions), and [permissions](#section-14---permission-management).
+- **Administration and security:** [users](#section-15---user-management), [packages](#section-16---package-management), [services](#section-17---service-and-process-management), [task scheduling](#section-18---task-scheduling), and [network services](#section-19--network-services).
+- **Complete screenshot catalog:** [View all 112 images, organized by topic](images/linux-fundamentals/INDEX.md), including screenshots not featured in the main notes.
+
+> [!TIP]
+> Use GitHub's table of contents or search for **📸 Lab notebook** to jump between illustrated sections. Expand **See additional annotated screenshots** when you want details without cluttering the main reading flow.
+<!-- END LINUX PORTFOLIO INTRO -->
+
 ---
 
 # Section 1 - Linux Structure
@@ -271,6 +297,20 @@ https://explainshell.com/
 
 ---
 
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 5: Getting Help
+
+🟣 **Reference screenshot** — **Manual page for `rm`**
+
+![Manual page for `rm`](images/linux-fundamentals/01-early-linux-misc/early-linux-003.png)
+
+*Evidence note:* Using `man` to review command syntax before deleting files.
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/01-early-linux-misc/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
+
 # Section 6 - System Information
 
 These commands are useful for understanding the Linux system we are currently working on.
@@ -449,6 +489,20 @@ SSH is commonly used to manage Linux servers remotely.
 
 ---
 
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 6: System Information
+
+🟢 **Command demonstrated** — **Checking machine architecture with `uname -m`**
+
+![Checking machine architecture with `uname -m`](images/linux-fundamentals/01-early-linux-misc/early-linux-016.png)
+
+*Evidence note:* Terminal displays `x86_64`; the manual was consulted first.
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/01-early-linux-misc/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
+
 # Section 7 - Navigation
 
 ## Current Directory
@@ -588,6 +642,31 @@ cd /dev/shm && clear
 `&&` runs the second command only if the first command succeeds.
 
 ---
+
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 7: Navigation
+
+🟢 **Command demonstrated** — **Listing filesystem content under `/var`**
+
+![Listing filesystem content under `/var`](images/linux-fundamentals/01-early-linux-misc/early-linux-007.png)
+
+*Evidence note:* Navigating real directories and inspecting their contents.
+
+<details>
+<summary>🖼️ See 1 additional annotated screenshot</summary>
+
+🟢 **Command demonstrated** — **Directory exploration in the HTB terminal**
+
+![Directory exploration in the HTB terminal](images/linux-fundamentals/01-early-linux-misc/early-linux-010.png)
+
+*Evidence note:* Using shell navigation and listings while working through a lab.
+
+</details>
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/01-early-linux-misc/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
 
 # Section 8 - Working with Files and Directories
 
@@ -1165,6 +1244,40 @@ I practiced:
 - Basic substitution
 
 The current goal is not to master Vim completely, but to become comfortable enough to use it during Linux administration and cybersecurity labs.
+
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 9: Editing Files / Vim
+
+🟠 **Troubleshooting / error** — **Vim tutor: moving and editing lines**
+
+![Vim tutor: moving and editing lines](images/linux-fundamentals/02-section-09-editing-files-vim/s09-vim-011.png)
+
+*Evidence note:* The modified buffer is visible, together with an `E832` write limitation; do not treat this as evidence of a saved file.
+
+> [!WARNING]
+> Some Vim tutor screenshots display `E832: Cannot write, 'buftype' option is set`. They document a learning obstacle, not a successfully saved file.
+
+<details>
+<summary>🖼️ See 2 additional annotated screenshots</summary>
+
+🔵 **Guided study** — **Vim tutor: search navigation**
+
+![Vim tutor: search navigation](images/linux-fundamentals/02-section-09-editing-files-vim/s09-vim-014.png)
+
+*Evidence note:* The lesson documents `/`, `n`, `N`, and bracket matching; this is a guided exercise screen.
+
+🟣 **Reference screenshot** — **Vim tutor: substitution syntax**
+
+![Vim tutor: substitution syntax](images/linux-fundamentals/02-section-09-editing-files-vim/s09-vim-022.png)
+
+*Evidence note:* The screen explains `:s/old/new/g`; it is reference material, not proof of executing the substitution.
+
+</details>
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/02-section-09-editing-files-vim/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
 
 # Section 10 - Find Files and Directories
 
@@ -1987,6 +2100,23 @@ Filter it
 Count or save the final result
 ```
 
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 11: File Descriptors and Redirections
+
+🔵 **Guided study** — **Inspecting `dpkg` help and package listings**
+
+![Inspecting `dpkg` help and package listings](images/linux-fundamentals/03-section-11-file-descriptors-redirection/s11-redirection-004.png)
+
+*Evidence note:* Captured while studying this part of the course; it does not demonstrate shell redirection or file descriptors.
+
+> [!NOTE]
+> The archived screenshots for this section show related study activity and package inspection, **not** a confirmed example of `stdin`, `stdout`, `stderr`, or `2>/dev/null`. The command explanations above remain the study record.
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/03-section-11-file-descriptors-redirection/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
+
 # Section 12 - Filter Contents
 
 This section focused on reading, filtering, transforming, organizing, and counting text directly from the Linux terminal.
@@ -2507,6 +2637,49 @@ Inspect again
    ↓
 Count / save result
 ```
+
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 12: Filter Contents
+
+🟢 **Command demonstrated** — **Filtering `/etc/passwd` with `grep`**
+
+![Filtering `/etc/passwd` with `grep`](images/linux-fundamentals/04-section-12-filter-contents/s12-filter-001.png)
+
+*Evidence note:* An actual terminal command filters user-account information.
+
+<details>
+<summary>🖼️ See 4 additional annotated screenshots</summary>
+
+🟢 **Command demonstrated** — **Chaining `grep`, `cut`, and `tr`**
+
+![Chaining `grep`, `cut`, and `tr`](images/linux-fundamentals/04-section-12-filter-contents/s12-filter-007.png)
+
+*Evidence note:* A working text-processing pipeline extracts selected account fields.
+
+🟢 **Command demonstrated** — **Finding and counting listening network sockets**
+
+![Finding and counting listening network sockets](images/linux-fundamentals/04-section-12-filter-contents/s12-filter-014.png)
+
+*Evidence note:* A pipeline combines `ss`, `grep`, and `wc` for a concise result.
+
+🟠 **Troubleshooting / error** — **Troubleshooting `curl` syntax**
+
+![Troubleshooting `curl` syntax](images/linux-fundamentals/04-section-12-filter-contents/s12-filter-018.png)
+
+*Evidence note:* A failed command is retained as a lesson in correcting input before rerunning a pipeline.
+
+🟢 **Command demonstrated** — **Extracting and counting web links**
+
+![Extracting and counting web links](images/linux-fundamentals/04-section-12-filter-contents/s12-filter-023.png)
+
+*Evidence note:* Combines `curl`, `grep`, sorting, and counting in an applied exercise.
+
+</details>
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/04-section-12-filter-contents/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
 
 # Section 13 - Regular Expressions
 
@@ -3286,6 +3459,31 @@ man grep
 grep --help
 ```
 
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 13: Regular Expressions
+
+🟢 **Command demonstrated** — **Searching SSH configuration parameters**
+
+![Searching SSH configuration parameters](images/linux-fundamentals/05-section-13-regex/s13-regex-001.png)
+
+*Evidence note:* The terminal uses `grep -E` to examine alternatives in `sshd_config`.
+
+<details>
+<summary>🖼️ See 1 additional annotated screenshot</summary>
+
+🟢 **Command demonstrated** — **Filtering SSH key configuration lines**
+
+![Filtering SSH key configuration lines](images/linux-fundamentals/05-section-13-regex/s13-regex-002.png)
+
+*Evidence note:* An additional `grep` search illustrates pattern matching in a system configuration file.
+
+</details>
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/05-section-13-regex/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
+
 # Section 14 - Permission Management
 
 Linux permissions control who can access, modify, or execute files and directories.
@@ -3808,6 +4006,37 @@ SUID / SGID
 Sticky Bit
 → protects files in shared directories
 ```
+
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 14: Permission Management
+
+🟢 **Command demonstrated** — **Creating a permissions test directory**
+
+![Creating a permissions test directory](images/linux-fundamentals/06-section-14-permissions/s14-permissions-001.png)
+
+*Evidence note:* The lab prepares a file and directory for permission inspection.
+
+<details>
+<summary>🖼️ See 2 additional annotated screenshots</summary>
+
+🟢 **Command demonstrated** — **Changing mode to `644`**
+
+![Changing mode to `644`](images/linux-fundamentals/06-section-14-permissions/s14-permissions-002.png)
+
+*Evidence note:* `chmod 644 test.txt` is followed by `ls -l`, confirming the resulting permission bits.
+
+🟢 **Command demonstrated** — **Changing mode to `755`**
+
+![Changing mode to `755`](images/linux-fundamentals/06-section-14-permissions/s14-permissions-003.png)
+
+*Evidence note:* `chmod 755 test.txt` is followed by `ls -l`, showing executable permission bits.
+
+</details>
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/06-section-14-permissions/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
 
 # Section 15 - User Management
 
@@ -4392,6 +4621,37 @@ Permission Management
 ```
 
 into one complete access-control model.
+
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 15: User Management
+
+🟢 **Command demonstrated** — **Creating a shared directory with owner and group controls**
+
+![Creating a shared directory with owner and group controls](images/linux-fundamentals/07-section-15-user-management/s15-users-004.png)
+
+*Evidence note:* The terminal shows `mkdir`, `chown`, and `chmod` with a subsequent directory listing.
+
+<details>
+<summary>🖼️ See 2 additional annotated screenshots</summary>
+
+🟠 **Troubleshooting / error** — **Understanding account and file access restrictions**
+
+![Understanding account and file access restrictions](images/linux-fundamentals/07-section-15-user-management/s15-users-003.png)
+
+*Evidence note:* A permission-denied message helps illustrate that commands are subject to authorization.
+
+🟢 **Command demonstrated** — **Inspecting a shared-directory file and removing a test user**
+
+![Inspecting a shared-directory file and removing a test user](images/linux-fundamentals/07-section-15-user-management/s15-users-005.png)
+
+*Evidence note:* Shows an ownership/permission check and an account-management command in the lab.
+
+</details>
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/07-section-15-user-management/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
 
 # Section 16 - Package Management
 
@@ -5024,6 +5284,43 @@ verify
 ↓
 then modify
 ```
+
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 16: Package Management
+
+🟢 **Command demonstrated** — **Downloading a Debian package**
+
+![Downloading a Debian package](images/linux-fundamentals/08-section-16-package-management/s16-packages-008.png)
+
+*Evidence note:* Package-management activity in the Parrot Linux VM; distinct from a hosted HTB target.
+
+<details>
+<summary>🖼️ See 3 additional annotated screenshots</summary>
+
+🟢 **Command demonstrated** — **Installing and inspecting a `.deb` file**
+
+![Installing and inspecting a `.deb` file](images/linux-fundamentals/08-section-16-package-management/s16-packages-010.png)
+
+*Evidence note:* The package manager reports steps and dependencies during a local installation exercise.
+
+🟠 **Troubleshooting / error** — **Diagnosing package installation or dependency errors**
+
+![Diagnosing package installation or dependency errors](images/linux-fundamentals/08-section-16-package-management/s16-packages-012.png)
+
+*Evidence note:* Shows why installation output should be reviewed instead of assuming success.
+
+🟢 **Command demonstrated** — **Using APT to inspect or simulate package changes**
+
+![Using APT to inspect or simulate package changes](images/linux-fundamentals/08-section-16-package-management/s16-packages-015.png)
+
+*Evidence note:* Documents an actual package-management command and its terminal response.
+
+</details>
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/08-section-16-package-management/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
 
 # Section 17 - Service and Process Management
 
@@ -6041,6 +6338,31 @@ A | B
 
 These concepts are especially useful in cybersecurity for inspecting running services, identifying suspicious processes, reviewing logs, understanding process relationships, and controlling processes during system investigation.
 
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 17: Service and Process Management
+
+🟢 **Command demonstrated** — **Inspecting the SSH daemon and running processes**
+
+![Inspecting the SSH daemon and running processes](images/linux-fundamentals/09-section-17-service-process-management/s17-processes-001.png)
+
+*Evidence note:* Uses `systemctl status ssh`, process information, and service listings.
+
+<details>
+<summary>🖼️ See 1 additional annotated screenshot</summary>
+
+🟢 **Command demonstrated** — **Inspecting SSH service logs with `journalctl`**
+
+![Inspecting SSH service logs with `journalctl`](images/linux-fundamentals/09-section-17-service-process-management/s17-processes-002.png)
+
+*Evidence note:* Shows service metadata and journal output for troubleshooting.
+
+</details>
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/09-section-17-service-process-management/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
+
 # Section 18 - Task Scheduling
 
 This section focused on scheduling automated tasks in Linux using systemd timers and Cron.
@@ -6833,6 +7155,43 @@ redirections
 
 Understanding how Linux schedules and executes tasks is useful for system administration, troubleshooting, and identifying possible persistence mechanisms during security investigations.
 
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 18: Task Scheduling
+
+🟢 **Command demonstrated** — **Listing active systemd timers**
+
+![Listing active systemd timers](images/linux-fundamentals/10-section-18-task-scheduling/s18-scheduling-002.png)
+
+*Evidence note:* The terminal enumerates timers and inspects a specific timer.
+
+<details>
+<summary>🖼️ See 3 additional annotated screenshots</summary>
+
+🟢 **Command demonstrated** — **Reading a timer unit definition**
+
+![Reading a timer unit definition](images/linux-fundamentals/10-section-18-task-scheduling/s18-scheduling-006.png)
+
+*Evidence note:* The `.timer` configuration describes the scheduling interval and target unit.
+
+🟢 **Command demonstrated** — **Inspecting cron scheduling examples**
+
+![Inspecting cron scheduling examples](images/linux-fundamentals/10-section-18-task-scheduling/s18-scheduling-008.png)
+
+*Evidence note:* Shows cron directories and scheduling syntax in system files.
+
+🟠 **Troubleshooting / error** — **Handling a missing `dconf.service`**
+
+![Handling a missing `dconf.service`](images/linux-fundamentals/10-section-18-task-scheduling/s18-scheduling-009.png)
+
+*Evidence note:* `systemctl` reports the unit is not present; recognizing an absent service is a valid diagnostic outcome.
+
+</details>
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/10-section-18-task-scheduling/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
+
 ## Section 19 – Network Services
 
 **Status:** Completed
@@ -6948,6 +7307,20 @@ sudo openvpn --config internal.ovpn  # Example client connection
 
 
 ---
+
+
+<!-- BEGIN LINUX PORTFOLIO GALLERY -->
+### 📸 Lab notebook · Section 19: Network Services
+
+🟢 **Command demonstrated** — **Checking SSH network-service status**
+
+![Checking SSH network-service status](images/linux-fundamentals/11-section-19-network-services/s19-network-001.png)
+
+*Evidence note:* The lab confirms SSH service/process information and demonstrates inspection commands.
+
+📂 [Browse all screenshots in this group](images/linux-fundamentals/11-section-19-network-services/) · [Evidence index](images/linux-fundamentals/INDEX.md)
+<!-- END LINUX PORTFOLIO GALLERY -->
+
 
 # Progress
 
